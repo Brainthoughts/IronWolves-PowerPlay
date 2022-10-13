@@ -31,8 +31,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -74,7 +77,11 @@ public class MainTeleOp extends LinearOpMode {
     private DcMotor backRightMotor = null;
     private DcMotor winchMotor = null;
 
+    private Servo clawRotateServo = null;
+    private Servo clawOpenServo = null;
+
     int targetLiftPostion = 0;
+    boolean targetClawOpen = false;
 
     private Gamepad previousGamepad1 = null;
 
@@ -89,8 +96,11 @@ public class MainTeleOp extends LinearOpMode {
         frontRightMotor = hardwareMap.dcMotor.get("front_right_motor");
         backLeftMotor = hardwareMap.dcMotor.get("back_left_motor");
         backRightMotor = hardwareMap.dcMotor.get("back_right_motor");
-
         winchMotor = hardwareMap.dcMotor.get("winch_motor");
+
+        clawOpenServo = hardwareMap.servo.get("claw_open_servo");
+        clawRotateServo = hardwareMap.servo.get("claw_rotate_servo");
+
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
@@ -106,7 +116,11 @@ public class MainTeleOp extends LinearOpMode {
         backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
         backRightMotor.setDirection(DcMotor.Direction.FORWARD);
 
+        clawOpenServo.setDirection(Servo.Direction.FORWARD);
+        clawRotateServo.setDirection(Servo.Direction.FORWARD);
+
         winchMotor.setDirection(DcMotor.Direction.FORWARD);
+
 
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -127,6 +141,8 @@ public class MainTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
 
             drive();
+            lift();
+            claw();
 
             previousGamepad1 = gamepad1;
         }
@@ -194,5 +210,18 @@ public class MainTeleOp extends LinearOpMode {
         }
 
 
+    }
+
+    void claw(){
+        double[] rotationPostions = {0, 5, 10, 15, 20}; //how do servos work :(
+        double openPostions = 0.5;
+
+        if (previousGamepad1.a != gamepad1.a && gamepad1.a){
+            targetClawOpen = !targetClawOpen;
+            clawOpenServo.setPosition(targetClawOpen ? 0 : openPostions); //if the button was pressed down, toggle the claw
+
+
+            //todo add smooth rotation
+        }
     }
 }
