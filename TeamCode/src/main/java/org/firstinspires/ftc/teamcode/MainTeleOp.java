@@ -97,7 +97,7 @@ public class MainTeleOp extends LinearOpMode {
         backLeftMotor = hardwareMap.dcMotor.get("back_left_motor");
         backRightMotor = hardwareMap.dcMotor.get("back_right_motor");
         winchMotor = hardwareMap.dcMotor.get("winch_motor");
-
+//
         clawOpenServo = hardwareMap.servo.get("claw_open_servo");
         clawRotateServo = hardwareMap.servo.get("claw_rotate_servo");
 
@@ -111,10 +111,10 @@ public class MainTeleOp extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+        frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-        backRightMotor.setDirection(DcMotor.Direction.FORWARD);
+        backRightMotor.setDirection(DcMotor.Direction.REVERSE);
 
         clawOpenServo.setDirection(Servo.Direction.FORWARD);
         clawRotateServo.setDirection(Servo.Direction.FORWARD);
@@ -128,6 +128,8 @@ public class MainTeleOp extends LinearOpMode {
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         winchMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        winchMotor.setTargetPosition(0); //must set target postion before enableing RUN_TO_POSITION
         winchMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         // Wait for the game to start (driver presses PLAY)
@@ -159,9 +161,9 @@ public class MainTeleOp extends LinearOpMode {
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.
         double frontLeftPower = vertical + horizontal + rotation;
+        double frontRightPower = vertical - horizontal - rotation;
         double backLeftPower = vertical - horizontal + rotation;
-        double frontRightPower = vertical + horizontal - rotation;
-        double backRightPower = vertical - horizontal - rotation;
+        double backRightPower = vertical + horizontal - rotation;
 
         // Normalize the values so no wheel power exceeds 100%
         // This ensures that the robot maintains the desired motion.
@@ -178,8 +180,8 @@ public class MainTeleOp extends LinearOpMode {
 
         // Send calculated power to wheels
         frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(frontRightPower);
-        frontRightMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backLeftMotor.setPower(backLeftPower);
         backRightMotor.setPower(backRightPower);
 
         // Show the elapsed game time and wheel power.
@@ -188,6 +190,10 @@ public class MainTeleOp extends LinearOpMode {
         telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
         telemetry.addData("Left Joystick 1", "%4.2f, %4.2f", gamepad1.left_stick_x, gamepad1.left_stick_y);
         telemetry.addData("Left Joystick 2", "%4.2f, %4.2f", gamepad2.left_stick_x, gamepad2.left_stick_y);
+        telemetry.addData("Vertical", "%4.2f", vertical);
+        telemetry.addData("Horizontal", "%4.2f", horizontal);
+        telemetry.addData("Rotation", "%4.2f", rotation);
+
         telemetry.update();
     }
 
