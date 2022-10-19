@@ -31,9 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -130,7 +128,8 @@ public class MainTeleOp extends LinearOpMode {
         winchMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         winchMotor.setTargetPosition(0); //must set target postion before enableing RUN_TO_POSITION
-        winchMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        winchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        winchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
@@ -142,7 +141,7 @@ public class MainTeleOp extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            drive();
+//            drive();
             lift();
             claw();
 
@@ -199,21 +198,41 @@ public class MainTeleOp extends LinearOpMode {
 
     void lift(){
         int ppm = 3896;
-        int[] postions = {0, 5*ppm, 10*ppm, 15*ppm, 20*ppm};
+//        int[] postions = {0, 5*ppm, 10*ppm, 15*ppm, 20*ppm};
+//
+//        if (targetLiftPostion > 0 && previousGamepad1.left_bumper != gamepad1.left_bumper){
+//            targetLiftPostion -= gamepad1.left_bumper ? 1 : 0; //if the button was pressed down, lower the targetLiftPosition
+//        }
+//
+//        if (targetLiftPostion < postions.length-1 && previousGamepad1.right_bumper != gamepad1.right_bumper){
+//            targetLiftPostion += gamepad1.right_bumper ? 1 : 0; //if the button was pressed down, raise the targetLiftPosition
+//        }
+//
+//
+//        if (winchMotor.getTargetPosition() != postions[targetLiftPostion]){
+//            winchMotor.setTargetPosition(postions[targetLiftPostion]);
+//        }
+//
 
-        if (targetLiftPostion > 0 && previousGamepad1.left_bumper != gamepad1.left_bumper){
-            targetLiftPostion -= gamepad1.left_bumper ? 1 : 0; //if the button was pressed down, lower the targetLiftPosition
+//        //todo add smooth rotation
+
+        if (gamepad1.right_trigger - gamepad1.left_trigger != 0) {
+            winchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            winchMotor.setPower(winchMotor.getCurrentPosition() > 10 ? gamepad1.right_trigger - gamepad1.left_trigger: gamepad1.right_trigger);
+            targetLiftPostion = Math.max(winchMotor.getCurrentPosition(), 10);
+        } else {
+            winchMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            winchMotor.setTargetPosition(targetLiftPostion);
         }
 
-        if (targetLiftPostion < postions.length-1 && previousGamepad1.right_bumper != gamepad1.right_bumper){
-            targetLiftPostion += gamepad1.right_bumper ? 1 : 0; //if the button was pressed down, raise the targetLiftPosition
-        }
-
-        //todo add smooth rotation
-
-        if (winchMotor.getTargetPosition() != postions[targetLiftPostion]){
-            winchMotor.setTargetPosition(postions[targetLiftPostion]);
-        }
+//        telemetry.addData("LiftTarget", "%4.2f", targetLiftPostion);
+//        telemetry.addData("TargetPostion", "%4.2f", postions[targetLiftPostion]);
+        telemetry.addData("CurrentPosition", "%d", winchMotor.getCurrentPosition());
+        telemetry.addData("TargetPosition", "%d", targetLiftPostion);
+        telemetry.addData("Left Trigger", "%f", gamepad1.left_trigger);
+        telemetry.addData("Right Trigger", "%f", gamepad1.right_trigger);
+        telemetry.addData("Mode", "%s", winchMotor.getMode());
+        telemetry.update();
 
 
     }
