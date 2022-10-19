@@ -197,7 +197,8 @@ public class MainTeleOp extends LinearOpMode {
     }
 
     void lift(){
-        int ppm = 3896;
+        int liftMin = 10;
+        int liftMax = 1900;
 //        int[] postions = {0, 5*ppm, 10*ppm, 15*ppm, 20*ppm};
 //
 //        if (targetLiftPostion > 0 && previousGamepad1.left_bumper != gamepad1.left_bumper){
@@ -214,12 +215,17 @@ public class MainTeleOp extends LinearOpMode {
 //        }
 //
 
-//        //todo add smooth rotation
 
         if (gamepad1.right_trigger - gamepad1.left_trigger != 0) {
             winchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            winchMotor.setPower(winchMotor.getCurrentPosition() > 10 ? gamepad1.right_trigger - gamepad1.left_trigger: gamepad1.right_trigger);
-            targetLiftPostion = Math.max(winchMotor.getCurrentPosition(), 10);
+            if (winchMotor.getCurrentPosition() < liftMin){
+                winchMotor.setPower(gamepad1.right_trigger);
+            } else if (winchMotor.getCurrentPosition() > liftMax){
+                winchMotor.setPower(gamepad1.left_trigger);
+            }else {
+                winchMotor.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
+            }
+            targetLiftPostion = Math.min(Math.max(winchMotor.getCurrentPosition(), liftMin), liftMax); //keep target position in range
         } else {
             winchMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             winchMotor.setTargetPosition(targetLiftPostion);
