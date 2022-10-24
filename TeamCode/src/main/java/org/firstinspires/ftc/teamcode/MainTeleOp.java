@@ -169,9 +169,9 @@ public class MainTeleOp extends LinearOpMode {
         double max;
 
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-        double vertical = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-        double horizontal = gamepad1.left_stick_x;
-        double rotation = gamepad1.right_stick_x;
+        double vertical = convertMotorPower(-gamepad1.left_stick_y);  // Note: pushing stick forward gives negative value
+        double horizontal = convertMotorPower(gamepad1.left_stick_x);
+        double rotation = convertMotorPower(gamepad1.right_stick_x);
 
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -214,37 +214,61 @@ public class MainTeleOp extends LinearOpMode {
     void lift() {
         int liftMin = 10;
         int liftMax = 1830;
-        int liftSpeed = 500;
+        int maxLiftSpeed = 500;
+        double liftPower = 0;
         int[] postions = {0, 300, 600, 900, 1200, 1500, 1800};
 
-        if (targetLiftPostionIndex > 0 && previousGamepad1.left_bumper != gamepad1.left_bumper) {
-            targetLiftPostionIndex -= gamepad1.left_bumper ? 1 : 0; //if the button was pressed down, lower the targetLiftPosition
-            targetLiftPostion = postions[targetLiftPostionIndex];
-        } else if (targetLiftPostionIndex < postions.length - 1 && previousGamepad1.right_bumper != gamepad1.right_bumper) {
-            targetLiftPostionIndex += gamepad1.right_bumper ? 1 : 0; //if the button was pressed down, raise the targetLiftPosition
-            targetLiftPostion = postions[targetLiftPostionIndex];
-        }
+
+//        //todo fix inputs so it registers first try
+//        if (targetLiftPostionIndex > 0 && previousGamepad1.left_bumper != gamepad1.left_bumper) {
+//            targetLiftPostionIndex -= gamepad1.left_bumper ? 1 : 0; //if the button was pressed down, lower the targetLiftPosition
+//            targetLiftPostion = postions[targetLiftPostionIndex];
+//        } else if (targetLiftPostionIndex < postions.length - 1 && previousGamepad1.right_bumper != gamepad1.right_bumper) {
+//            targetLiftPostionIndex += gamepad1.right_bumper ? 1 : 0; //if the button was pressed down, raise the targetLiftPosition
+//            targetLiftPostion = postions[targetLiftPostionIndex];
+//        }
+        if (gamepad1.left_bumper)
+            targetLiftPostion = postions[0];
+        else if (gamepad1.right_bumper)
+            targetLiftPostion = postions[postions.length-1];
 
 
         if (gamepad1.right_trigger - gamepad1.left_trigger != 0) {
             if (DcMotor.RunMode.RUN_USING_ENCODER != winchMotor.getMode())
                 winchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             if (winchMotor.getCurrentPosition() < liftMin) {
-                winchMotor.setPower(gamepad1.right_trigger);
+                liftPower = gamepad1.right_trigger;
             } else if (winchMotor.getCurrentPosition() > liftMax) {
-                winchMotor.setPower(gamepad1.left_trigger);
+                liftPower = -gamepad1.left_trigger;
             } else {
-                winchMotor.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
+                liftPower = gamepad1.right_trigger - gamepad1.left_trigger;
             }
+            winchMotor.setPower(convertMotorPower(liftPower));
             targetLiftPostion = Math.min(Math.max(winchMotor.getCurrentPosition(), liftMin), liftMax); //keep target position in range
         } else if (DcMotor.RunMode.RUN_TO_POSITION != winchMotor.getMode()) {
             winchMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
 
+        int velocity = 0;
+        int targetSwitches = 0;
+
+        //todo dampen edges and work with smooth movement
         if (lastTargetLiftPostion != targetLiftPostion) {
+            targetSwitches++;
             winchMotor.setTargetPosition(targetLiftPostion);
-            winchMotor.setVelocity(targetLiftPostion > lastTargetLiftPostion ? liftMax : -liftSpeed);
+            lastTargetLiftPostion = targetLiftPostion;
         }
+
+        if (DcMotor.RunMode.RUN_TO_POSITION == winchMotor.getMode()){
+            if (targetLiftPostion - winchMotor.getCurrentPosition() > 0) {
+                velocity = Math.max(targetLiftPostion - winchMotor.getCurrentPosition(), 150);
+            }
+            else {
+                velocity = Math.max(Math.min(targetLiftPostion - winchMotor.getCurrentPosition(), -150), -1000);
+            }
+        }
+
+        winchMotor.setVelocity(velocity);
 
 //        telemetry.addData("LiftTarget", "%4.2f", targetLiftPostion);
 //        telemetry.addData("TargetPostion", "%4.2f", postions[targetLiftPostion]);
@@ -252,8 +276,15 @@ public class MainTeleOp extends LinearOpMode {
         telemetry.addData("TargetPosition", "%d", targetLiftPostion);
         telemetry.addData("Left Trigger", "%f", gamepad1.left_trigger);
         telemetry.addData("Right Trigger", "%f", gamepad1.right_trigger);
+        telemetry.addData("Target Velocity", "%d", velocity);
+        telemetry.addData("Target Switches", "%d", targetSwitches);
+
         telemetry.addData("Mode", "%s", winchMotor.getMode());
 
+    }
+
+    double convertMotorPower(double input){
+        return ((1/Math.cos(input))-1)*(Math.abs(input)/input);
     }
 
     void claw() {
