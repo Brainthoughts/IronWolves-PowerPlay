@@ -35,13 +35,12 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * This file contains an example of a Linear "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
+ * An OpMode is a 'program' that test in either the autonomous or the teleop period of an FTC match.
  * The names of OpModes appear on the menu of the FTC Driver Station.
  * When a selection is made from the menu, the corresponding OpMode is executed.
  * <p>
@@ -86,6 +85,9 @@ public class MainTeleOp extends LinearOpMode {
 
     boolean targetClawOpen = false;
 
+    int test = 0;
+
+
     private final Gamepad previousGamepad1 = new Gamepad();
 
     @Override
@@ -115,7 +117,7 @@ public class MainTeleOp extends LinearOpMode {
         // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
         // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
+        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that test backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
         frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
@@ -158,7 +160,7 @@ public class MainTeleOp extends LinearOpMode {
             telemetry.update();
 
             try {
-                previousGamepad1.fromByteArray(gamepad1.toByteArray());
+                previousGamepad1.copy(gamepad1);
             } catch (RobotCoreException e) {
                 e.printStackTrace();
             }
@@ -169,9 +171,9 @@ public class MainTeleOp extends LinearOpMode {
         double max;
 
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-        double vertical = convertMotorPower(-gamepad1.left_stick_y);  // Note: pushing stick forward gives negative value
-        double horizontal = convertMotorPower(gamepad1.left_stick_x);
-        double rotation = convertMotorPower(gamepad1.right_stick_x);
+        double vertical = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
+        double horizontal = gamepad1.left_stick_x;
+        double rotation = gamepad1.right_stick_x;
 
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -213,24 +215,26 @@ public class MainTeleOp extends LinearOpMode {
 
     void lift() {
         int liftMin = 10;
-        int liftMax = 1830;
-        int maxLiftSpeed = 500;
+        int liftMax = 1575;
+        int minLiftSpeed = 250;
+        int maxDownLiftSpeed = 900;
         double liftPower = 0;
-        int[] postions = {0, 300, 600, 900, 1200, 1500, 1800};
+        int[] postions = {0, 300, 600, 900, 1200, 1575};
+
 
 
 //        //todo fix inputs so it registers first try
-//        if (targetLiftPostionIndex > 0 && previousGamepad1.left_bumper != gamepad1.left_bumper) {
-//            targetLiftPostionIndex -= gamepad1.left_bumper ? 1 : 0; //if the button was pressed down, lower the targetLiftPosition
-//            targetLiftPostion = postions[targetLiftPostionIndex];
-//        } else if (targetLiftPostionIndex < postions.length - 1 && previousGamepad1.right_bumper != gamepad1.right_bumper) {
-//            targetLiftPostionIndex += gamepad1.right_bumper ? 1 : 0; //if the button was pressed down, raise the targetLiftPosition
-//            targetLiftPostion = postions[targetLiftPostionIndex];
-//        }
-        if (gamepad1.left_bumper)
-            targetLiftPostion = postions[0];
-        else if (gamepad1.right_bumper)
-            targetLiftPostion = postions[postions.length-1];
+        if (targetLiftPostionIndex > 0 && !previousGamepad1.left_bumper && gamepad1.left_bumper) {
+            targetLiftPostionIndex--; //if the button was pressed down, lower the targetLiftPosition
+            targetLiftPostion = postions[targetLiftPostionIndex];
+            test++;
+        } else if (targetLiftPostionIndex < postions.length - 1 && !previousGamepad1.right_bumper && gamepad1.right_bumper) {
+            targetLiftPostionIndex++; //if the button was pressed down, raise the targetLiftPosition
+            targetLiftPostion = postions[targetLiftPostionIndex];
+            test++;
+        }
+
+
 
 
         if (gamepad1.right_trigger - gamepad1.left_trigger != 0) {
@@ -250,25 +254,24 @@ public class MainTeleOp extends LinearOpMode {
         }
 
         int velocity = 0;
-        int targetSwitches = 0;
 
         //todo dampen edges and work with smooth movement
         if (lastTargetLiftPostion != targetLiftPostion) {
-            targetSwitches++;
             winchMotor.setTargetPosition(targetLiftPostion);
             lastTargetLiftPostion = targetLiftPostion;
         }
 
         if (DcMotor.RunMode.RUN_TO_POSITION == winchMotor.getMode()){
             if (targetLiftPostion - winchMotor.getCurrentPosition() > 0) {
-                velocity = Math.max(targetLiftPostion - winchMotor.getCurrentPosition(), 150);
+                velocity = Math.max(targetLiftPostion - winchMotor.getCurrentPosition(), minLiftSpeed);
             }
             else {
-                velocity = Math.max(Math.min(targetLiftPostion - winchMotor.getCurrentPosition(), -150), -1000);
+                velocity = Math.max(Math.min(targetLiftPostion - winchMotor.getCurrentPosition(), -minLiftSpeed), -maxDownLiftSpeed);
             }
+            winchMotor.setVelocity(velocity);
         }
 
-        winchMotor.setVelocity(velocity);
+
 
 //        telemetry.addData("LiftTarget", "%4.2f", targetLiftPostion);
 //        telemetry.addData("TargetPostion", "%4.2f", postions[targetLiftPostion]);
@@ -277,9 +280,12 @@ public class MainTeleOp extends LinearOpMode {
         telemetry.addData("Left Trigger", "%f", gamepad1.left_trigger);
         telemetry.addData("Right Trigger", "%f", gamepad1.right_trigger);
         telemetry.addData("Target Velocity", "%d", velocity);
-        telemetry.addData("Target Switches", "%d", targetSwitches);
+        telemetry.addData("prevLeftB", "%b", previousGamepad1.left_bumper);
+        telemetry.addData("LeftB", "%b", gamepad1.left_bumper);
 
-        telemetry.addData("Mode", "%s", winchMotor.getMode());
+//        telemetry.addData("TEST", "%d", test);
+
+//        telemetry.addData("Mode", "%s", winchMotor.getMode());
 
     }
 
