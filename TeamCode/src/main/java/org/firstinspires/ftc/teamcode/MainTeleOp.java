@@ -217,7 +217,9 @@ public class MainTeleOp extends LinearOpMode {
         int liftMin = 10;
         int liftMax = 1575;
         int minLiftSpeed = 250;
-        int maxDownLiftSpeed = 900;
+        int minLiftVelocity = -900;
+        int maxLiftVelocity = 1500;
+        int endBuffer = 250;
         double liftPower = 0;
         int[] postions = {0, 300, 600, 900, 1200, 1575};
 
@@ -235,7 +237,7 @@ public class MainTeleOp extends LinearOpMode {
         }
 
 
-
+        int velocity = 0;
 
         if (gamepad1.right_trigger - gamepad1.left_trigger != 0) {
             if (DcMotor.RunMode.RUN_USING_ENCODER != winchMotor.getMode())
@@ -247,15 +249,31 @@ public class MainTeleOp extends LinearOpMode {
             } else {
                 liftPower = gamepad1.right_trigger - gamepad1.left_trigger;
             }
-            winchMotor.setPower(convertMotorPower(liftPower));
+
+            velocity = (int) (convertMotorPower(liftPower)* maxLiftVelocity);
+
+
+
             targetLiftPostion = Math.min(Math.max(winchMotor.getCurrentPosition(), liftMin), liftMax); //keep target position in range
+
+            if (velocity > 0 && liftMax - winchMotor.getCurrentPosition() < endBuffer){
+                velocity = minLiftSpeed;
+            } else if (velocity < 0 && winchMotor.getCurrentPosition() - liftMin < endBuffer){
+                velocity = -minLiftSpeed;
+            }
+
+            for (int i = 1; i < postions.length; i++) { //make left and right bumper move up or down accounting for current position
+                if (winchMotor.getCurrentPosition() - postions[i] <= 0){
+                    targetLiftPostionIndex = i-1;
+                    break;
+                }
+            }
         } else if (DcMotor.RunMode.RUN_TO_POSITION != winchMotor.getMode()) {
             winchMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
 
-        int velocity = 0;
 
-        //todo dampen edges and work with smooth movement
+
         if (lastTargetLiftPostion != targetLiftPostion) {
             winchMotor.setTargetPosition(targetLiftPostion);
             lastTargetLiftPostion = targetLiftPostion;
@@ -266,10 +284,13 @@ public class MainTeleOp extends LinearOpMode {
                 velocity = Math.max(targetLiftPostion - winchMotor.getCurrentPosition(), minLiftSpeed);
             }
             else {
-                velocity = Math.max(Math.min(targetLiftPostion - winchMotor.getCurrentPosition(), -minLiftSpeed), -maxDownLiftSpeed);
+                velocity = Math.max(Math.min(targetLiftPostion - winchMotor.getCurrentPosition(), -minLiftSpeed), minLiftVelocity);
             }
-            winchMotor.setVelocity(velocity);
         }
+
+        velocity = Math.min(Math.max(minLiftVelocity, velocity), maxLiftVelocity);
+
+        winchMotor.setVelocity(velocity);
 
 
 
