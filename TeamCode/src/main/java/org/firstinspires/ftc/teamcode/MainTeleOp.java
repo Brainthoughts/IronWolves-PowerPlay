@@ -38,6 +38,10 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorBNO055IMU;
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorMRColor;
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorMRRangeSensor;
+
 /**
  * This file contains an example of a Linear "OpMode".
  * An OpMode is a 'program' that test in either the autonomous or the teleop period of an FTC match.
@@ -79,6 +83,10 @@ public class MainTeleOp extends LinearOpMode {
 
     private Servo clawServo = null;
 
+    private SensorMRColor colorSensor = null;
+    private SensorMRRangeSensor rangeSenor = null;
+    private SensorBNO055IMU imu = null;
+
     int targetLiftPostion = 10;
     int lastTargetLiftPostion = targetLiftPostion;
     int targetLiftPostionIndex = 0;
@@ -90,6 +98,7 @@ public class MainTeleOp extends LinearOpMode {
 
 
     private final Gamepad previousGamepad1 = new Gamepad();
+    private final Gamepad currentGamepad1 = new Gamepad();
 
     @Override
     public void runOpMode() {
@@ -97,7 +106,7 @@ public class MainTeleOp extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
         try {
-            previousGamepad1.fromByteArray(gamepad1.toByteArray());
+            previousGamepad1.copy(gamepad1);
         } catch (RobotCoreException e) {
             e.printStackTrace();
         }
@@ -109,6 +118,8 @@ public class MainTeleOp extends LinearOpMode {
         winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
 
         clawServo = hardwareMap.servo.get("claw_open_servo");
+
+//        colorSensor = hardwareMap
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -154,6 +165,11 @@ public class MainTeleOp extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            try {
+                currentGamepad1.copy(gamepad1);
+            } catch (RobotCoreException e) {
+                e.printStackTrace();
+            }
 
             drive();
             lift();
@@ -161,7 +177,7 @@ public class MainTeleOp extends LinearOpMode {
             telemetry.update();
 
             try {
-                previousGamepad1.copy(gamepad1);
+                previousGamepad1.copy(currentGamepad1);
             } catch (RobotCoreException e) {
                 e.printStackTrace();
             }
@@ -176,9 +192,9 @@ public class MainTeleOp extends LinearOpMode {
         double rotationCoefficient = .3d;
 
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-        double vertical = convertMotorPower(-gamepad1.left_stick_y)*verticalCoefficient;  // Note: pushing stick forward gives negative value
-        double horizontal = convertMotorPower(gamepad1.left_stick_x)*horizontalCoefficient;
-        double rotation = convertMotorPower(gamepad1.right_stick_x)*rotationCoefficient;
+        double vertical = convertMotorPower(-currentGamepad1.left_stick_y)*verticalCoefficient;  // Note: pushing stick forward gives negative value
+        double horizontal = convertMotorPower(currentGamepad1.left_stick_x)*horizontalCoefficient;
+        double rotation = convertMotorPower(currentGamepad1.right_stick_x)*rotationCoefficient;
 
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -210,7 +226,7 @@ public class MainTeleOp extends LinearOpMode {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
 //        telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
 //        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-//        telemetry.addData("Left Joystick 1", "%4.2f, %4.2f", gamepad1.left_stick_x, gamepad1.left_stick_y);
+//        telemetry.addData("Left Joystick 1", "%4.2f, %4.2f", currentGamepad1.left_stick_x, currentGamepad1.left_stick_y);
 //        telemetry.addData("Left Joystick 2", "%4.2f, %4.2f", gamepad2.left_stick_x, gamepad2.left_stick_y);
 //        telemetry.addData("Vertical", "%4.2f", vertical);
 //        telemetry.addData("Horizontal", "%4.2f", horizontal);
@@ -225,34 +241,33 @@ public class MainTeleOp extends LinearOpMode {
         int minLiftVelocity = -900;
         int maxLiftVelocity = 1500;
         int endBuffer = 250;
-        double liftPower = 0;
-        int[] postions = {10, 300, 600, 900, 1200, 1575};
+        double liftPower;
+        int[] postions = {10, 730, 1150, 1575};
 
 
 
 //        //todo fix inputs so it registers first try
-        if (targetLiftPostionIndex > 0 && !previousGamepad1.left_bumper && gamepad1.left_bumper) {
-            targetLiftPostionIndex--; //if the button was pressed down, lower the targetLiftPosition
+        if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper) {
+            if (targetLiftPostionIndex > 0)
+                targetLiftPostionIndex--; //if the button was pressed down, lower the targetLiftPosition
             targetLiftPostion = postions[targetLiftPostionIndex];
-            test++;
-        } else if (targetLiftPostionIndex < postions.length - 1 && !previousGamepad1.right_bumper && gamepad1.right_bumper) {
+        } else if (targetLiftPostionIndex < postions.length - 1 && !previousGamepad1.right_bumper && currentGamepad1.right_bumper) {
             targetLiftPostionIndex++; //if the button was pressed down, raise the targetLiftPosition
             targetLiftPostion = postions[targetLiftPostionIndex];
-            test++;
         }
 
 
         int velocity = 0;
 
-        if (gamepad1.right_trigger - gamepad1.left_trigger != 0) {
+        if (currentGamepad1.right_trigger - currentGamepad1.left_trigger != 0) {
             if (DcMotor.RunMode.RUN_USING_ENCODER != winchMotor.getMode())
                 winchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             if (winchMotor.getCurrentPosition() < liftMin) {
-                liftPower = gamepad1.right_trigger;
+                liftPower = currentGamepad1.right_trigger;
             } else if (winchMotor.getCurrentPosition() > liftMax) {
-                liftPower = -gamepad1.left_trigger;
+                liftPower = -currentGamepad1.left_trigger;
             } else {
-                liftPower = gamepad1.right_trigger - gamepad1.left_trigger;
+                liftPower = currentGamepad1.right_trigger - currentGamepad1.left_trigger;
             }
 
             velocity = (int) (convertMotorPower(liftPower)* maxLiftVelocity);
@@ -303,11 +318,11 @@ public class MainTeleOp extends LinearOpMode {
 //        telemetry.addData("TargetPostion", "%4.2f", postions[targetLiftPostion]);
         telemetry.addData("CurrentPosition", "%d", winchMotor.getCurrentPosition());
         telemetry.addData("TargetPosition", "%d", targetLiftPostion);
-//        telemetry.addData("Left Trigger", "%f", gamepad1.left_trigger);
-//        telemetry.addData("Right Trigger", "%f", gamepad1.right_trigger);
+//        telemetry.addData("Left Trigger", "%f", currentGamepad1.left_trigger);
+//        telemetry.addData("Right Trigger", "%f", currentGamepad1.right_trigger);
 //        telemetry.addData("Target Velocity", "%d", velocity);
 //        telemetry.addData("prevLeftB", "%b", previousGamepad1.left_bumper);
-//        telemetry.addData("LeftB", "%b", gamepad1.left_bumper);
+//        telemetry.addData("LeftB", "%b", currentGamepad1.left_bumper);
 
 //        telemetry.addData("TEST", "%d", test);
 
@@ -326,7 +341,7 @@ public class MainTeleOp extends LinearOpMode {
         double openPostion = 0.35;
         double closedPosition = 0.45;
 
-        if (!previousGamepad1.a && gamepad1.a) {
+        if (!previousGamepad1.a && currentGamepad1.a) {
             targetClawOpen = !targetClawOpen;
             targetClawPosition = targetClawOpen ? openPostion : closedPosition; //if the button was pressed down, toggle the claw
         }
