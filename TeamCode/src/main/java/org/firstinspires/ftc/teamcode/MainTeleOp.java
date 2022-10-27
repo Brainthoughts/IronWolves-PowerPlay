@@ -77,13 +77,14 @@ public class MainTeleOp extends LinearOpMode {
     private DcMotorEx backRightMotor = null;
     private DcMotorEx winchMotor = null;
 
-    private Servo clawOpenServo = null;
+    private Servo clawServo = null;
 
-    int targetLiftPostion = 0;
+    int targetLiftPostion = 10;
     int lastTargetLiftPostion = targetLiftPostion;
     int targetLiftPostionIndex = 0;
 
     boolean targetClawOpen = false;
+    double targetClawPosition = 0.45f;
 
     int test = 0;
 
@@ -107,7 +108,7 @@ public class MainTeleOp extends LinearOpMode {
 
         winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
 
-        clawOpenServo = hardwareMap.servo.get("claw_open_servo");
+        clawServo = hardwareMap.servo.get("claw_open_servo");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -124,7 +125,7 @@ public class MainTeleOp extends LinearOpMode {
         backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
         backRightMotor.setDirection(DcMotor.Direction.REVERSE);
 
-        clawOpenServo.setDirection(Servo.Direction.FORWARD);
+        clawServo.setDirection(Servo.Direction.FORWARD);
 
         winchMotor.setDirection(DcMotor.Direction.FORWARD);
 
@@ -170,10 +171,14 @@ public class MainTeleOp extends LinearOpMode {
     void drive() {
         double max;
 
+        double verticalCoefficient = 1d;
+        double horizontalCoefficient = .7d;
+        double rotationCoefficient = .3d;
+
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-        double vertical = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-        double horizontal = gamepad1.left_stick_x;
-        double rotation = gamepad1.right_stick_x;
+        double vertical = convertMotorPower(-gamepad1.left_stick_y)*verticalCoefficient;  // Note: pushing stick forward gives negative value
+        double horizontal = convertMotorPower(gamepad1.left_stick_x)*horizontalCoefficient;
+        double rotation = convertMotorPower(gamepad1.right_stick_x)*rotationCoefficient;
 
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -203,13 +208,13 @@ public class MainTeleOp extends LinearOpMode {
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-        telemetry.addData("Left Joystick 1", "%4.2f, %4.2f", gamepad1.left_stick_x, gamepad1.left_stick_y);
-        telemetry.addData("Left Joystick 2", "%4.2f, %4.2f", gamepad2.left_stick_x, gamepad2.left_stick_y);
-        telemetry.addData("Vertical", "%4.2f", vertical);
-        telemetry.addData("Horizontal", "%4.2f", horizontal);
-        telemetry.addData("Rotation", "%4.2f", rotation);
+//        telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
+//        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
+//        telemetry.addData("Left Joystick 1", "%4.2f, %4.2f", gamepad1.left_stick_x, gamepad1.left_stick_y);
+//        telemetry.addData("Left Joystick 2", "%4.2f, %4.2f", gamepad2.left_stick_x, gamepad2.left_stick_y);
+//        telemetry.addData("Vertical", "%4.2f", vertical);
+//        telemetry.addData("Horizontal", "%4.2f", horizontal);
+//        telemetry.addData("Rotation", "%4.2f", rotation);
 
     }
 
@@ -221,7 +226,7 @@ public class MainTeleOp extends LinearOpMode {
         int maxLiftVelocity = 1500;
         int endBuffer = 250;
         double liftPower = 0;
-        int[] postions = {0, 300, 600, 900, 1200, 1575};
+        int[] postions = {10, 300, 600, 900, 1200, 1575};
 
 
 
@@ -298,11 +303,11 @@ public class MainTeleOp extends LinearOpMode {
 //        telemetry.addData("TargetPostion", "%4.2f", postions[targetLiftPostion]);
         telemetry.addData("CurrentPosition", "%d", winchMotor.getCurrentPosition());
         telemetry.addData("TargetPosition", "%d", targetLiftPostion);
-        telemetry.addData("Left Trigger", "%f", gamepad1.left_trigger);
-        telemetry.addData("Right Trigger", "%f", gamepad1.right_trigger);
-        telemetry.addData("Target Velocity", "%d", velocity);
-        telemetry.addData("prevLeftB", "%b", previousGamepad1.left_bumper);
-        telemetry.addData("LeftB", "%b", gamepad1.left_bumper);
+//        telemetry.addData("Left Trigger", "%f", gamepad1.left_trigger);
+//        telemetry.addData("Right Trigger", "%f", gamepad1.right_trigger);
+//        telemetry.addData("Target Velocity", "%d", velocity);
+//        telemetry.addData("prevLeftB", "%b", previousGamepad1.left_bumper);
+//        telemetry.addData("LeftB", "%b", gamepad1.left_bumper);
 
 //        telemetry.addData("TEST", "%d", test);
 
@@ -311,17 +316,22 @@ public class MainTeleOp extends LinearOpMode {
     }
 
     double convertMotorPower(double input){
+        if (input == 0){
+            return 0;
+        }
         return ((1/Math.cos(input))-1)*(Math.abs(input)/input);
     }
 
     void claw() {
-        double openPostion = 0.5;
+        double openPostion = 0.35;
+        double closedPosition = 0.45;
 
-        if (previousGamepad1.a != gamepad1.a && gamepad1.a) {
+        if (!previousGamepad1.a && gamepad1.a) {
             targetClawOpen = !targetClawOpen;
-            clawOpenServo.setPosition(targetClawOpen ? 0 : openPostion); //if the button was pressed down, toggle the claw
-
-
+            targetClawPosition = targetClawOpen ? openPostion : closedPosition; //if the button was pressed down, toggle the claw
         }
+        clawServo.setPosition(targetClawPosition);
+        telemetry.addData("Servo Position", "%f", clawServo.getPosition());
+
     }
 }
