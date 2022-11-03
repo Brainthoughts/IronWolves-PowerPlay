@@ -29,11 +29,14 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.exception.RobotCoreException;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -41,6 +44,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorBNO055IMU;
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorMRColor;
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorMRRangeSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -83,9 +87,9 @@ public class MainTeleOp extends LinearOpMode {
 
     private Servo clawServo = null;
 
-    private SensorMRColor colorSensor = null;
-    private SensorMRRangeSensor rangeSenor = null;
-    private SensorBNO055IMU imu = null;
+    private ColorSensor colorSensor = null;
+    private DistanceSensor rangeSenor = null;
+    private BNO055IMU imu = null;
 
     int targetLiftPostion = 10;
     int lastTargetLiftPostion = targetLiftPostion;
@@ -119,7 +123,9 @@ public class MainTeleOp extends LinearOpMode {
 
         clawServo = hardwareMap.servo.get("claw_open_servo");
 
-//        colorSensor = hardwareMap
+        colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
+        rangeSenor = hardwareMap.get(DistanceSensor.class, "range_sensor");
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -171,6 +177,7 @@ public class MainTeleOp extends LinearOpMode {
                 e.printStackTrace();
             }
 
+            sensors();
             drive();
             lift();
             claw();
@@ -184,11 +191,17 @@ public class MainTeleOp extends LinearOpMode {
         }
     }
 
+    private void sensors() {
+        telemetry.addData("Color:", colorSensor.red() + ", " + colorSensor.green() + ", " + colorSensor.blue());
+        telemetry.addData("Distance: ", rangeSenor.getDistance(DistanceUnit.CM));
+//        telemetry.addData("IMU: ", imu.)
+    }
+
     void drive() {
         double max;
 
-        double verticalCoefficient = 1d;
-        double horizontalCoefficient = .7d;
+        double verticalCoefficient = .5d;
+        double horizontalCoefficient = .35d;
         double rotationCoefficient = .3d;
 
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
@@ -236,13 +249,13 @@ public class MainTeleOp extends LinearOpMode {
 
     void lift() {
         int liftMin = 10;
-        int liftMax = 1575;
+        int liftMax = 1975;
         int minLiftSpeed = 250;
         int minLiftVelocity = -900;
         int maxLiftVelocity = 1500;
         int endBuffer = 250;
         double liftPower;
-        int[] postions = {10, 730, 1150, 1575};
+        int[] postions = {10, 820, 1320, 1850};
 
 
 
@@ -270,7 +283,7 @@ public class MainTeleOp extends LinearOpMode {
                 liftPower = currentGamepad1.right_trigger - currentGamepad1.left_trigger;
             }
 
-            velocity = (int) (convertMotorPower(liftPower)* maxLiftVelocity);
+            velocity = (int) (convertLiftPower(liftPower)* maxLiftVelocity);
 
 
 
@@ -330,11 +343,18 @@ public class MainTeleOp extends LinearOpMode {
 
     }
 
+    double convertLiftPower(double input){
+        if (input == 0){
+            return 0;
+        }
+        return ((Math.pow(1.5*Math.abs(input)-.5, 3)+Math.pow(.5,3))/(1.5))*(Math.abs(input)/input);
+    }
+
     double convertMotorPower(double input){
         if (input == 0){
             return 0;
         }
-        return ((1/Math.cos(input))-1)*(Math.abs(input)/input);
+        return ((Math.pow(Math.E, Math.abs(input))-1)/2)*(Math.abs(input)/input);
     }
 
     void claw() {
