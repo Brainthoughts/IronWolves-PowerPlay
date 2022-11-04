@@ -358,8 +358,8 @@ public class MainTeleOp extends LinearOpMode {
     }
 
     void claw() {
-        double openPostion = 0.35;
-        double closedPosition = 0.45;
+        double openPostion = 0.36;
+        double closedPosition = 0.46;
 
         if (!previousGamepad1.a && currentGamepad1.a) {
             targetClawOpen = !targetClawOpen;
