@@ -40,11 +40,18 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.ReadWriteFile;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.SensorBNO055IMU;
-import org.firstinspires.ftc.robotcontroller.external.samples.SensorMRColor;
-import org.firstinspires.ftc.robotcontroller.external.samples.SensorMRRangeSensor;
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
+import java.io.File;
+import java.util.Locale;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -78,7 +85,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class MainTeleOp extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
-    private ElapsedTime runtime = new ElapsedTime();
+    private final ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx frontLeftMotor = null;
     private DcMotorEx frontRightMotor = null;
     private DcMotorEx backLeftMotor = null;
@@ -90,6 +97,7 @@ public class MainTeleOp extends LinearOpMode {
     private ColorSensor colorSensor = null;
     private DistanceSensor rangeSenor = null;
     private BNO055IMU imu = null;
+    Orientation angles;
 
     int targetLiftPostion = 10;
     int lastTargetLiftPostion = targetLiftPostion;
@@ -115,9 +123,9 @@ public class MainTeleOp extends LinearOpMode {
             e.printStackTrace();
         }
         frontLeftMotor = hardwareMap.get(DcMotorEx.class, "front_left_motor");
-        frontRightMotor = hardwareMap.get(DcMotorEx.class,"front_right_motor");
-        backLeftMotor = hardwareMap.get(DcMotorEx.class,"back_left_motor");
-        backRightMotor = hardwareMap.get(DcMotorEx.class,"back_right_motor");
+        frontRightMotor = hardwareMap.get(DcMotorEx.class, "front_right_motor");
+        backLeftMotor = hardwareMap.get(DcMotorEx.class, "back_left_motor");
+        backRightMotor = hardwareMap.get(DcMotorEx.class, "back_right_motor");
 
         winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
 
@@ -162,7 +170,18 @@ public class MainTeleOp extends LinearOpMode {
         winchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         winchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        imu.initialize(parameters);
+        String IMUCalibrationFileName = "IMUCalibration.json";
+        File IMUCalibrationFile = AppUtil.getInstance().getSettingsFile(IMUCalibrationFileName);
+        String data = ReadWriteFile.readFile(IMUCalibrationFile);
+        imu.writeCalibrationData(BNO055IMU.CalibrationData.deserialize(data));
+
         // Wait for the game to start (driver presses PLAY)
+
+        composeTelemetry();
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
@@ -194,7 +213,6 @@ public class MainTeleOp extends LinearOpMode {
     private void sensors() {
         telemetry.addData("Color:", colorSensor.red() + ", " + colorSensor.green() + ", " + colorSensor.blue());
         telemetry.addData("Distance: ", rangeSenor.getDistance(DistanceUnit.CM));
-//        telemetry.addData("IMU: ", imu.)
     }
 
     void drive() {
@@ -205,9 +223,9 @@ public class MainTeleOp extends LinearOpMode {
         double rotationCoefficient = .3d;
 
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-        double vertical = convertMotorPower(-currentGamepad1.left_stick_y)*verticalCoefficient;  // Note: pushing stick forward gives negative value
-        double horizontal = convertMotorPower(currentGamepad1.left_stick_x)*horizontalCoefficient;
-        double rotation = convertMotorPower(currentGamepad1.right_stick_x)*rotationCoefficient;
+        double vertical = convertMotorPower(-currentGamepad1.left_stick_y) * verticalCoefficient;  // Note: pushing stick forward gives negative value
+        double horizontal = convertMotorPower(currentGamepad1.left_stick_x) * horizontalCoefficient;
+        double rotation = convertMotorPower(currentGamepad1.right_stick_x) * rotationCoefficient;
 
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -236,7 +254,7 @@ public class MainTeleOp extends LinearOpMode {
         backRightMotor.setPower(backRightPower);
 
         // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Status", "Run Time: " + runtime);
 //        telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
 //        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
 //        telemetry.addData("Left Joystick 1", "%4.2f, %4.2f", currentGamepad1.left_stick_x, currentGamepad1.left_stick_y);
@@ -256,7 +274,6 @@ public class MainTeleOp extends LinearOpMode {
         int endBuffer = 250;
         double liftPower;
         int[] postions = {10, 820, 1320, 1850};
-
 
 
 //        //todo fix inputs so it registers first try
@@ -283,21 +300,20 @@ public class MainTeleOp extends LinearOpMode {
                 liftPower = currentGamepad1.right_trigger - currentGamepad1.left_trigger;
             }
 
-            velocity = (int) (convertLiftPower(liftPower)* maxLiftVelocity);
-
+            velocity = (int) (convertLiftPower(liftPower) * maxLiftVelocity);
 
 
             targetLiftPostion = Math.min(Math.max(winchMotor.getCurrentPosition(), liftMin), liftMax); //keep target position in range
 
-            if (velocity > 0 && liftMax - winchMotor.getCurrentPosition() < endBuffer){
+            if (velocity > 0 && liftMax - winchMotor.getCurrentPosition() < endBuffer) {
                 velocity = minLiftSpeed;
-            } else if (velocity < 0 && winchMotor.getCurrentPosition() - liftMin < endBuffer){
+            } else if (velocity < 0 && winchMotor.getCurrentPosition() - liftMin < endBuffer) {
                 velocity = -minLiftSpeed;
             }
 
             for (int i = 1; i < postions.length; i++) { //make left and right bumper move up or down accounting for current position
-                if (winchMotor.getCurrentPosition() - postions[i] <= 0){
-                    targetLiftPostionIndex = i-1;
+                if (winchMotor.getCurrentPosition() - postions[i] <= 0) {
+                    targetLiftPostionIndex = i - 1;
                     break;
                 }
             }
@@ -306,17 +322,15 @@ public class MainTeleOp extends LinearOpMode {
         }
 
 
-
         if (lastTargetLiftPostion != targetLiftPostion) {
             winchMotor.setTargetPosition(targetLiftPostion);
             lastTargetLiftPostion = targetLiftPostion;
         }
 
-        if (DcMotor.RunMode.RUN_TO_POSITION == winchMotor.getMode()){
+        if (DcMotor.RunMode.RUN_TO_POSITION == winchMotor.getMode()) {
             if (targetLiftPostion - winchMotor.getCurrentPosition() > 0) {
                 velocity = Math.max(targetLiftPostion - winchMotor.getCurrentPosition(), minLiftSpeed);
-            }
-            else {
+            } else {
                 velocity = Math.max(Math.min(targetLiftPostion - winchMotor.getCurrentPosition(), -minLiftSpeed), minLiftVelocity);
             }
         }
@@ -324,7 +338,6 @@ public class MainTeleOp extends LinearOpMode {
         velocity = Math.min(Math.max(minLiftVelocity, velocity), maxLiftVelocity);
 
         winchMotor.setVelocity(velocity);
-
 
 
 //        telemetry.addData("LiftTarget", "%4.2f", targetLiftPostion);
@@ -343,19 +356,6 @@ public class MainTeleOp extends LinearOpMode {
 
     }
 
-    double convertLiftPower(double input){
-        if (input == 0){
-            return 0;
-        }
-        return ((Math.pow(1.5*Math.abs(input)-.5, 3)+Math.pow(.5,3))/(1.5))*(Math.abs(input)/input);
-    }
-
-    double convertMotorPower(double input){
-        if (input == 0){
-            return 0;
-        }
-        return ((Math.pow(Math.E, Math.abs(input))-1)/2)*(Math.abs(input)/input);
-    }
 
     void claw() {
         double openPostion = 0.36;
@@ -369,4 +369,48 @@ public class MainTeleOp extends LinearOpMode {
         telemetry.addData("Servo Position", "%f", clawServo.getPosition());
 
     }
+
+    String formatAngle(AngleUnit angleUnit, double angle) {
+        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
+    }
+
+    String formatDegrees(double degrees) {
+        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
+    }
+
+    double convertLiftPower(double input) {
+        if (input == 0) {
+            return 0;
+        }
+        return ((Math.pow(1.5 * Math.abs(input) - .5, 3) + Math.pow(.5, 3)) / (1.5)) * (Math.abs(input) / input);
+    }
+
+    double convertMotorPower(double input) {
+        if (input == 0) {
+            return 0;
+        }
+        return ((Math.pow(Math.E, Math.abs(input)) - 1) / 2) * (Math.abs(input) / input);
+    }
+
+    void composeTelemetry() {
+
+        // At the beginning of each telemetry update, grab a bunch of data
+        // from the IMU that we will then display in separate lines.
+        telemetry.addAction(() -> {
+            // Acquiring the angles is relatively expensive; we don't want
+            // to do that in each of the three items that need that info, as that's
+            // three times the necessary expense.
+            angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        });
+
+        telemetry.addLine()
+                .addData("status", () -> imu.getSystemStatus().toShortString())
+                .addData("calib", () -> imu.getCalibrationStatus().toString());
+
+        telemetry.addLine()
+                .addData("heading", () -> formatAngle(angles.angleUnit, angles.firstAngle))
+                .addData("roll", () -> formatAngle(angles.angleUnit, angles.secondAngle))
+                .addData("pitch", () -> formatAngle(angles.angleUnit, angles.thirdAngle));
+    }
+
 }
