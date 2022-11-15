@@ -40,17 +40,14 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.ReadWriteFile;
 
-import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
-import java.io.File;
 import java.util.Locale;
 
 /**
@@ -106,6 +103,8 @@ public class MainTeleOp extends LinearOpMode {
     boolean targetClawOpen = false;
     double targetClawPosition = 0.45f;
 
+    PositionCalculator posCalc;
+
     int test = 0;
 
 
@@ -126,6 +125,8 @@ public class MainTeleOp extends LinearOpMode {
         frontRightMotor = hardwareMap.get(DcMotorEx.class, "front_right_motor");
         backLeftMotor = hardwareMap.get(DcMotorEx.class, "back_left_motor");
         backRightMotor = hardwareMap.get(DcMotorEx.class, "back_right_motor");
+
+        posCalc = new PositionCalculator(frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
         winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
 
@@ -154,6 +155,11 @@ public class MainTeleOp extends LinearOpMode {
 
         winchMotor.setDirection(DcMotor.Direction.FORWARD);
 
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -171,13 +177,13 @@ public class MainTeleOp extends LinearOpMode {
         winchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled      = true;
+        parameters.loggingTag          = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new WolfAccelerationIntegrator();
         imu.initialize(parameters);
-        String IMUCalibrationFileName = "IMUCalibration.json";
-        File IMUCalibrationFile = AppUtil.getInstance().getSettingsFile(IMUCalibrationFileName);
-        String data = ReadWriteFile.readFile(IMUCalibrationFile);
-        imu.writeCalibrationData(BNO055IMU.CalibrationData.deserialize(data));
 
         // Wait for the game to start (driver presses PLAY)
 
@@ -186,6 +192,7 @@ public class MainTeleOp extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
+        imu.startAccelerationIntegration(null, null, 100);
         runtime.reset();
 
         // run until the end of the match (driver presses STOP)
@@ -213,6 +220,16 @@ public class MainTeleOp extends LinearOpMode {
     private void sensors() {
         telemetry.addData("Color:", colorSensor.red() + ", " + colorSensor.green() + ", " + colorSensor.blue());
         telemetry.addData("Distance: ", rangeSenor.getDistance(DistanceUnit.CM));
+
+//        Position position = imu.getPosition();
+        Position pos = posCalc.getPosition();
+        telemetry.addData("Positon: ", pos.x + " ," + pos.y + " ," + 0);
+//        Velocity velocity = imu.getVelocity();
+//        telemetry.addData("Velocity: ", velocity.xVeloc + " ," + velocity.yVeloc + " ," + velocity.zVeloc);
+//        Acceleration acceleration = imu.getAcceleration();
+//        telemetry.addData("Acceleration: ", acceleration.xAccel + " ," + acceleration.yAccel + " ," + acceleration.zAccel);
+
+
     }
 
     void drive() {
