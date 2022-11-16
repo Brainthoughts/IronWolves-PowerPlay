@@ -1,6 +1,7 @@
 package org.ironwolves.ftc.navutils;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.PositionCalculator;
@@ -55,6 +56,16 @@ public class Instruction {
     }
 
     private void claw() {
+        double targetPosition = (double) parameters[0];
+        Servo clawServo = (Servo) parameters[1];
+
+        if (firstIteration){
+            clawServo.setPosition(targetPosition);
+        }
+
+        if (clawServo.getPosition() - targetPosition == 0){
+            complete = true;
+        }
 
     }
 
@@ -72,6 +83,8 @@ public class Instruction {
         DcMotorEx backLeftMotor = (DcMotorEx) parameters[3];
         DcMotorEx backRightMotor = (DcMotorEx) parameters[4];
 
+        int buffer = 250;
+
         if (firstIteration){
             //calculate and set new position for wheel encoders
 
@@ -80,20 +93,28 @@ public class Instruction {
             int backLeftEncoder = backLeftMotor.getCurrentPosition();
             int backRightEncoder = backRightMotor.getCurrentPosition();
 
-            frontLeftEncoder += posCalc.distanceToMotorRotation(offset.y);
-            frontRightEncoder += posCalc.distanceToMotorRotation(offset.y);
-            backLeftEncoder += posCalc.distanceToMotorRotation(offset.y);
-            backRightEncoder += posCalc.distanceToMotorRotation(offset.y);
+            frontLeftEncoder += posCalc.distanceToMotorRotation(offset.y) + posCalc.distanceToMotorRotation(offset.x);
+            frontRightEncoder += posCalc.distanceToMotorRotation(offset.y) - posCalc.distanceToMotorRotation(offset.x);
+            backLeftEncoder += posCalc.distanceToMotorRotation(offset.y) - posCalc.distanceToMotorRotation(offset.x);
+            backRightEncoder += posCalc.distanceToMotorRotation(offset.y) + posCalc.distanceToMotorRotation(offset.x);
 
             frontLeftMotor.setTargetPosition(frontLeftEncoder);
             frontRightMotor.setTargetPosition(frontRightEncoder);
             backLeftMotor.setTargetPosition(backLeftEncoder);
             backRightMotor.setTargetPosition(backRightEncoder);
 
-            frontLeftMotor.setVelocity(offset.acquisitionTime);
-            frontRightMotor.setVelocity(offset.acquisitionTime);
-            backLeftMotor.setVelocity(offset.acquisitionTime);
-            backRightMotor.setVelocity(offset.acquisitionTime);
+            if (Math.abs(frontLeftMotor.getTargetPosition() - frontLeftMotor.getCurrentPosition()) < buffer){
+                frontLeftMotor.setVelocity(buffer);
+                frontRightMotor.setVelocity(buffer);
+                backLeftMotor.setVelocity(buffer);
+                backRightMotor.setVelocity(buffer);
+            } else {
+                frontLeftMotor.setVelocity(offset.acquisitionTime);
+                frontRightMotor.setVelocity(offset.acquisitionTime);
+                backLeftMotor.setVelocity(offset.acquisitionTime);
+                backRightMotor.setVelocity(offset.acquisitionTime);
+            }
+
 
         }
 

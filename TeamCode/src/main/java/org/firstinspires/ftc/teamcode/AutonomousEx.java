@@ -32,7 +32,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -79,17 +78,7 @@ public class AutonomousEx extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private final ElapsedTime runtime = new ElapsedTime();
-    private DcMotorEx frontLeftMotor = null;
-    private DcMotorEx frontRightMotor = null;
-    private DcMotorEx backLeftMotor = null;
-    private DcMotorEx backRightMotor = null;
-    private DcMotorEx winchMotor = null;
 
-    private Servo clawServo = null;
-
-    private ColorSensor colorSensor = null;
-    private DistanceSensor rangeSenor = null;
-    private BNO055IMU imu = null;
     Orientation angles;
 
     int targetLiftPostion = 10;
@@ -111,21 +100,21 @@ public class AutonomousEx extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
 
-        frontLeftMotor = hardwareMap.get(DcMotorEx.class, "front_left_motor");
-        frontRightMotor = hardwareMap.get(DcMotorEx.class, "front_right_motor");
-        backLeftMotor = hardwareMap.get(DcMotorEx.class, "back_left_motor");
-        backRightMotor = hardwareMap.get(DcMotorEx.class, "back_right_motor");
+        DcMotorEx frontLeftMotor = hardwareMap.get(DcMotorEx.class, "front_left_motor");
+        DcMotorEx frontRightMotor = hardwareMap.get(DcMotorEx.class, "front_right_motor");
+        DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, "back_left_motor");
+        DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "back_right_motor");
 
         posCalc = new PositionCalculator(frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav = new AutonomousNavigator(posCalc);
 
-        winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
+        DcMotorEx winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
 
-        clawServo = hardwareMap.servo.get("claw_open_servo");
+        Servo clawServo = hardwareMap.servo.get("claw_open_servo");
 
-        colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
-        rangeSenor = hardwareMap.get(DistanceSensor.class, "range_sensor");
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
+        DistanceSensor rangeSenor = hardwareMap.get(DistanceSensor.class, "range_sensor");
+        BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -181,9 +170,11 @@ public class AutonomousEx extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        autoNav.claw(Config.Hardware.Servo.clawOpenPostion, clawServo);
+        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
 
-        autoNav.addInstruction(new Instruction(Instruction.Code.Move, new Object[]{new Position(DistanceUnit.METER, 0, 1, 0, 250), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor}));
-        autoNav.addInstruction(new Instruction(Instruction.Code.Move, new Object[]{new Position(DistanceUnit.METER, 0, -1, 0, 250), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor}));
+        autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {

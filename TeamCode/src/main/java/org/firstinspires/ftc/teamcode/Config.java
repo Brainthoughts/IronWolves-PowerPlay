@@ -11,7 +11,8 @@ public class Config { //not used yet, maybe someday
         }
 
         public static class Servo {
-//            public static String
+            static double clawOpenPostion = 0.36;
+            static double clawClosedPosition = 0.46;
         }
     }
 }
