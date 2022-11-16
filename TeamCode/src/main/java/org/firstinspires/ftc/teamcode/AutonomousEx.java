@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -42,8 +43,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
-
-import java.util.ArrayList;
+import org.ironwolves.ftc.navutils.AutonomousNavigator;
+import org.ironwolves.ftc.navutils.Instruction;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -73,7 +74,7 @@ import java.util.ArrayList;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name = "AutonomousEx", group = "Linear Opmode")
+@Autonomous(name = "AutonomousEx", group = "Linear Opmode")
 public class AutonomousEx extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -181,7 +182,8 @@ public class AutonomousEx extends LinearOpMode {
         runtime.reset();
 
 
-        autoNav.addInstruction(new AutonomousNavigator.Instruction(AutonomousNavigator.Instruction.Code.Move, new Object[]{new Position(DistanceUnit.METER, 0, 1, 0, 1)}));
+        autoNav.addInstruction(new Instruction(Instruction.Code.Move, new Object[]{new Position(DistanceUnit.METER, 0, 1, 0, 250), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor}));
+        autoNav.addInstruction(new Instruction(Instruction.Code.Move, new Object[]{new Position(DistanceUnit.METER, 0, -1, 0, 250), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor}));
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {

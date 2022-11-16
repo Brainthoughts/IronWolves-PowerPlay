@@ -29,28 +29,20 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-
-import java.util.Locale;
+import org.ironwolves.ftc.navutils.AutonomousNavigator;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -80,7 +72,7 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name = "SenseAndPark", group = "Linear Opmode")
+@Autonomous(name = "SenseAndPark", group = "Linear Opmode")
 public class SenseAndPark extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -161,10 +153,10 @@ public class SenseAndPark extends LinearOpMode {
         backLeftMotor.setTargetPosition(0);
         backRightMotor.setTargetPosition(0);
 
-        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -197,9 +189,33 @@ public class SenseAndPark extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            final double runtimeInSeconds = runtime.seconds();
+            double velocity = 250;
+            if (runtimeInSeconds < 3){
+                setVelocity(velocity, PositionCalculator.MovementMode.Vertical);
+            } else if (runtimeInSeconds < 6){
+                setVelocity(velocity, PositionCalculator.MovementMode.Horizontal);
+            } else {
+                setVelocity(0, PositionCalculator.MovementMode.Horizontal);
+            }
 
         }
 
+    }
+
+    void setVelocity(double velocity, @NonNull PositionCalculator.MovementMode mode){
+        if (PositionCalculator.MovementMode.Vertical == mode){
+            frontLeftMotor.setVelocity(velocity);
+            frontRightMotor.setVelocity(velocity);
+            backLeftMotor.setVelocity(velocity);
+            backRightMotor.setVelocity(velocity);
+        }
+        else if (PositionCalculator.MovementMode.Horizontal == mode){
+            frontLeftMotor.setVelocity(velocity);
+            frontRightMotor.setVelocity(-velocity);
+            backLeftMotor.setVelocity(-velocity);
+            backRightMotor.setVelocity(velocity);
+        }
     }
 
 
