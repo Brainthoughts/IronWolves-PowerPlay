@@ -17,10 +17,10 @@ public class PositionCalculator {
 
     public Position position = new Position(DistanceUnit.METER,0,0,0, 1);
 
-    private DcMotorEx frontLeftMotor = null;
-    private DcMotorEx frontRightMotor = null;
-    private DcMotorEx backLeftMotor = null;
-    private DcMotorEx backRightMotor = null;
+    private DcMotorEx frontLeftMotor;
+    private DcMotorEx frontRightMotor;
+    private DcMotorEx backLeftMotor;
+    private DcMotorEx backRightMotor;
 
     private final double ppr = ((1+(46.0/11)) * 28);
     private final double wheelRadius = 0.048; //in meters
@@ -49,12 +49,20 @@ public class PositionCalculator {
     private void updatePosition(){
         switch (currentMode){
             case Vertical:
-                position.y += ((frontLeftMotor.getCurrentPosition()-lastPos)*gearRatio/ppr)*2*Math.PI*wheelRadius;
+                position.y += motorRotationToDistance(frontLeftMotor.getCurrentPosition()-lastPos);
                 break;
             case Horizontal:
-                position.x += ((frontLeftMotor.getCurrentPosition()-lastPos)*gearRatio/ppr)*2*Math.PI*wheelRadius;
+                position.x += motorRotationToDistance(frontLeftMotor.getCurrentPosition()-lastPos);
                 break;
         }
         lastPos = frontLeftMotor.getCurrentPosition();
+    }
+
+    public double motorRotationToDistance(int deltaEncoder){
+        return deltaEncoder*gearRatio/ppr*2*Math.PI*wheelRadius;
+    }
+
+    public int distanceToMotorRotation(double distance){
+        return (int) ((distance*ppr)/(gearRatio*2*Math.PI*wheelRadius));
     }
 }

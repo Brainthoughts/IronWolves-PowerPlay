@@ -192,7 +192,6 @@ public class MainTeleOp extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
-        imu.startAccelerationIntegration(null, null, 100);
         runtime.reset();
 
         // run until the end of the match (driver presses STOP)
