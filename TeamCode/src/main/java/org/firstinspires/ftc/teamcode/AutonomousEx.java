@@ -116,16 +116,7 @@ public class AutonomousEx extends LinearOpMode {
         DistanceSensor rangeSenor = hardwareMap.get(DistanceSensor.class, "range_sensor");
         BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
 
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-        // Most robots need the motors on one side to be reversed to drive forward.
-        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
-        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
-        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
-        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that test backward
-        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
+
         frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -170,10 +161,14 @@ public class AutonomousEx extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        autoNav.claw(Config.Hardware.Servo.clawOpenPostion, clawServo);
-        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
+//        autoNav.claw(Config.Hardware.Servo.clawOpenPostion, clawServo);
+//        autoNav.sleep(1000);
+//        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
+//
+//        autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+//        autoNav.move(new Position(DistanceUnit.METER, 0, -1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
-        autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.move(new Position(DistanceUnit.METER, .5, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
 
         // run until the end of the match (driver presses STOP)
