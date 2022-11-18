@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Color;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -43,7 +45,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.ironwolves.ftc.navutils.AutonomousNavigator;
-import org.ironwolves.ftc.navutils.Instruction;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -168,8 +169,31 @@ public class AutonomousEx extends LinearOpMode {
 //        autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 //        autoNav.move(new Position(DistanceUnit.METER, 0, -1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
-        autoNav.move(new Position(DistanceUnit.METER, .5, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+//        autoNav.move(new Position(DistanceUnit.METER, .5, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.custom(() -> {
+            int color = Color.RED;
+            int highestColorValue = colorSensor.red();
 
+            if (colorSensor.green() > highestColorValue){
+                color = Color.GREEN;
+                highestColorValue = colorSensor.green();
+            }
+            if (colorSensor.blue() > highestColorValue){
+                color = Color.BLUE;
+                highestColorValue = colorSensor.blue();
+            }
+
+            if (Color.RED == color){
+                autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+                autoNav.move(new Position(DistanceUnit.METER, -1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+            } else if (Color.GREEN == color){
+                autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+            } else if (Color.BLUE == color){
+                autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+                autoNav.move(new Position(DistanceUnit.METER, 1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+            }
+
+        });
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {

@@ -2,22 +2,15 @@ package org.ironwolves.ftc.navutils;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.PositionCalculator;
-
-import java.sql.Time;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class Instruction {
     public enum Code {
         Move,
         Rotate,
-        Sense,
+        Custom,
         Claw,
         Lift,
         Sleep
@@ -52,8 +45,8 @@ public class Instruction {
             case Claw:
                 claw();
                 break;
-            case Sense:
-                sense();
+            case Custom:
+                custom();
                 break;
             case Sleep:
                 sleep();
@@ -63,8 +56,10 @@ public class Instruction {
     }
 
 
-    private void sense() {
-
+    private void custom() {
+        Runnable code = (Runnable) parameters[0];
+        code.run();
+        complete = true;
     }
 
     private void sleep() {

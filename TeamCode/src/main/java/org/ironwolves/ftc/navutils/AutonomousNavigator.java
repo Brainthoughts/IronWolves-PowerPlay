@@ -3,7 +3,6 @@ package org.ironwolves.ftc.navutils;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.PositionCalculator;
 
@@ -36,6 +35,18 @@ public class AutonomousNavigator {
     public void sleep(int sleepTimeMilliseconds){
         addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{System.currentTimeMillis() + sleepTimeMilliseconds}));
     }
+
+    public void rotate(){
+        throw new RuntimeException("Rotation Not yet implemented");
+    }
+
+    public void custom(Runnable code){
+        Instruction i = new Instruction(Instruction.Code.Custom, new Object[]{code});
+        addInstruction(i);
+//        return i;
+    }
+
+
 
     public void run(){
         for (Instruction i : instructions) {
