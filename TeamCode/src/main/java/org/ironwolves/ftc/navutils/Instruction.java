@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.PositionCalculator;
 
+import java.util.concurrent.Callable;
+
 public class Instruction {
     public enum Code {
         Move,
@@ -30,7 +32,7 @@ public class Instruction {
         return complete;
     }
 
-    public void execute(PositionCalculator posCalc){
+    public void execute(PositionCalculator posCalc) throws Exception {
         this.posCalc = posCalc;
         switch (instructionCode){
             case Move:
@@ -62,9 +64,10 @@ public class Instruction {
         complete = true;
     }
 
-    private void sleep() {
+    private void sleep() throws Exception {
         long sleepTime = (long) parameters[0];
-        if (System.currentTimeMillis() - sleepTime > 0){
+        Callable<Boolean> stopCondition = (Callable<Boolean>) parameters[1];
+        if ((stopCondition != null && stopCondition.call()) | System.currentTimeMillis() - sleepTime > 0){
             complete = true;
         }
     }
@@ -91,12 +94,13 @@ public class Instruction {
 
     }
 
-    private void move(){
+    private void move() throws Exception {
         Position offset = (Position) parameters[0];
-        DcMotorEx frontLeftMotor = (DcMotorEx) parameters[1];
-        DcMotorEx frontRightMotor = (DcMotorEx) parameters[2];
-        DcMotorEx backLeftMotor = (DcMotorEx) parameters[3];
-        DcMotorEx backRightMotor = (DcMotorEx) parameters[4];
+        Callable<Boolean> stopCondition = (Callable<Boolean>) parameters[1];
+        DcMotorEx frontLeftMotor = (DcMotorEx) parameters[2];
+        DcMotorEx frontRightMotor = (DcMotorEx) parameters[3];
+        DcMotorEx backLeftMotor = (DcMotorEx) parameters[4];
+        DcMotorEx backRightMotor = (DcMotorEx) parameters[5];
 
         int buffer = 250;
 
@@ -133,7 +137,11 @@ public class Instruction {
 
         }
 
-        if (!(frontLeftMotor.isBusy() || frontRightMotor.isBusy() || backLeftMotor.isBusy() || backRightMotor.isBusy())){
+        if ((stopCondition != null && stopCondition.call()) | !(frontLeftMotor.isBusy() || frontRightMotor.isBusy() || backLeftMotor.isBusy() || backRightMotor.isBusy())){
+            frontLeftMotor.setTargetPosition(frontLeftMotor.getCurrentPosition());
+            frontRightMotor.setTargetPosition(frontRightMotor.getCurrentPosition());
+            backLeftMotor.setTargetPosition(backLeftMotor.getCurrentPosition());
+            backRightMotor.setTargetPosition(backRightMotor.getCurrentPosition());
             this.complete = true;
         }
     }

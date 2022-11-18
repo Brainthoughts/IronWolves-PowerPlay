@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.PositionCalculator;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
 
 public class AutonomousNavigator {
@@ -24,7 +25,11 @@ public class AutonomousNavigator {
     }
 
     public void move(Position distance, DcMotorEx motor1, DcMotorEx motor2, DcMotorEx motor3, DcMotorEx motor4){
-        addInstruction(new Instruction(Instruction.Code.Move, new Object[]{distance, motor1, motor2, motor3, motor4}));
+        addInstruction(new Instruction(Instruction.Code.Move, new Object[]{distance, null, motor1, motor2, motor3, motor4}));
+
+    }
+    public void move(Position distance, Callable<Boolean> stopCondition, DcMotorEx motor1, DcMotorEx motor2, DcMotorEx motor3, DcMotorEx motor4){
+        addInstruction(new Instruction(Instruction.Code.Move, new Object[]{distance, stopCondition, motor1, motor2, motor3, motor4}));
 
     }
 
@@ -34,6 +39,10 @@ public class AutonomousNavigator {
 
     public void sleep(int sleepTimeMilliseconds){
         addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{System.currentTimeMillis() + sleepTimeMilliseconds}));
+    }
+
+    public void sleep(int sleepTimeMilliseconds, Callable<Boolean> stopCondition){
+        addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{System.currentTimeMillis() + sleepTimeMilliseconds, stopCondition}));
     }
 
     public void rotate(){
@@ -51,7 +60,11 @@ public class AutonomousNavigator {
     public void run(){
         for (Instruction i : instructions) {
             if (!i.isComplete()){
-                i.execute(posCalc);
+                try {
+                    i.execute(posCalc);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
                 break;
             }
         }

@@ -30,6 +30,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
+import android.icu.util.Measure;
+import android.icu.util.MeasureUnit;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -45,6 +47,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.ironwolves.ftc.navutils.AutonomousNavigator;
+
+import java.util.concurrent.Callable;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -162,14 +166,10 @@ public class AutonomousEx extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-//        autoNav.claw(Config.Hardware.Servo.clawOpenPostion, clawServo);
-//        autoNav.sleep(1000);
-//        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
-//
-//        autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-//        autoNav.move(new Position(DistanceUnit.METER, 0, -1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.move(new Position(DistanceUnit.METER, .2286, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        Callable<Boolean> isCloseEnough = () -> rangeSenor.getDistance(DistanceUnit.CM) < 3;
+        autoNav.move(new Position(DistanceUnit.METER, 0, .5, 0, 500), isCloseEnough, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
-//        autoNav.move(new Position(DistanceUnit.METER, .5, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav.custom(() -> {
             int color = Color.RED;
             int highestColorValue = colorSensor.red();
@@ -183,13 +183,12 @@ public class AutonomousEx extends LinearOpMode {
                 highestColorValue = colorSensor.blue();
             }
 
+            autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
             if (Color.RED == color){
-                autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
                 autoNav.move(new Position(DistanceUnit.METER, -1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
             } else if (Color.GREEN == color){
-                autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+                //do nothing
             } else if (Color.BLUE == color){
-                autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
                 autoNav.move(new Position(DistanceUnit.METER, 1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
             }
 
