@@ -166,14 +166,16 @@ public class AutonomousEx extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        autoNav.move(new Position(DistanceUnit.METER, .2286, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        Callable<Boolean> isCloseEnough = () -> rangeSenor.getDistance(DistanceUnit.CM) < 3;
-        autoNav.move(new Position(DistanceUnit.METER, 0, .5, 0, 500), isCloseEnough, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-
-        autoNav.custom(() -> {
-            int color = Color.RED;
+        autoNav.move(new Position(DistanceUnit.METER, -.05, 0.35, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        Callable<Boolean> isCloseEnough = () -> {
+            int color = 0;
             int highestColorValue = colorSensor.red();
 
+
+            if (colorSensor.red() > highestColorValue){
+                color = Color.RED;
+                highestColorValue = colorSensor.red();
+            }
             if (colorSensor.green() > highestColorValue){
                 color = Color.GREEN;
                 highestColorValue = colorSensor.green();
@@ -183,20 +185,50 @@ public class AutonomousEx extends LinearOpMode {
                 highestColorValue = colorSensor.blue();
             }
 
-            autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
             if (Color.RED == color){
-                autoNav.move(new Position(DistanceUnit.METER, -1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+                autoNav.move(new Position(DistanceUnit.METER, 0,.2,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+                autoNav.move(new Position(DistanceUnit.METER, -.6,0,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
             } else if (Color.GREEN == color){
-                //do nothing
+                autoNav.move(new Position(DistanceUnit.METER, .2,.2,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
             } else if (Color.BLUE == color){
-                autoNav.move(new Position(DistanceUnit.METER, 1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+                autoNav.move(new Position(DistanceUnit.METER, 0,.2,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+                autoNav.move(new Position(DistanceUnit.METER, .8,0,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
             }
 
-        });
+            return color != 0;
+        };
+        autoNav.move(new Position(DistanceUnit.METER, -.1, .2, 0, 250), isCloseEnough, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+
+//        autoNav.custom(() -> {
+//            int color = Color.RED;
+//            int highestColorValue = colorSensor.red();
+//
+//            if (colorSensor.green() > highestColorValue){
+//                color = Color.GREEN;
+//                highestColorValue = colorSensor.green();
+//            }
+//            if (colorSensor.blue() > highestColorValue){
+//                color = Color.BLUE;
+//                highestColorValue = colorSensor.blue();
+//            }
+//
+////            autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+//            if (Color.RED == color){
+//                autoNav.move(new Position(DistanceUnit.METER, -1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+//            } else if (Color.GREEN == color){
+//                //do nothing
+//            } else if (Color.BLUE == color){
+//                autoNav.move(new Position(DistanceUnit.METER, 1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+//            }
+//
+//        });
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             autoNav.run();
+            telemetry.addData("Color:", colorSensor.red() + ", " + colorSensor.green() + ", " + colorSensor.blue());
+            telemetry.addData("Distance: ", rangeSenor.getDistance(DistanceUnit.CM));
+            telemetry.update();
         }
 
     }

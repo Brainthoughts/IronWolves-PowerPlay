@@ -101,7 +101,7 @@ public class MainTeleOp extends LinearOpMode {
     int targetLiftPostionIndex = 0;
 
     boolean targetClawOpen = false;
-    double targetClawPosition = 0.45f;
+    double targetClawPosition = Config.Hardware.Servo.clawClosedPosition;
 
     PositionCalculator posCalc;
 
@@ -210,6 +210,7 @@ public class MainTeleOp extends LinearOpMode {
     private void sensors() {
         telemetry.addData("Color:", colorSensor.red() + ", " + colorSensor.green() + ", " + colorSensor.blue());
         telemetry.addData("Distance: ", rangeSenor.getDistance(DistanceUnit.CM));
+        telemetry.addData("EncFL: ", frontLeftMotor.getCurrentPosition());
 
 //        Position position = imu.getPosition();
         Position pos = posCalc.getPosition();
@@ -225,7 +226,7 @@ public class MainTeleOp extends LinearOpMode {
     void drive() {
         double max;
 
-        double verticalCoefficient = .5d;
+        double verticalCoefficient = .4d;
         double horizontalCoefficient = .35d;
         double rotationCoefficient = .3d;
 
@@ -280,10 +281,18 @@ public class MainTeleOp extends LinearOpMode {
         int maxLiftVelocity = 1500;
         int endBuffer = 250;
         double liftPower;
+        boolean debug = false;
         int[] postions = {10, 820, 1320, 1850};
 
+        if (currentGamepad1.y){
+            debug = true;
+        }
 
-//        //todo fix inputs so it registers first try
+        if (previousGamepad1.y && !currentGamepad1.y){
+            winchMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            debug = false;
+        }
+
         if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper) {
             if (targetLiftPostionIndex > 0)
                 targetLiftPostionIndex--; //if the button was pressed down, lower the targetLiftPosition
@@ -296,12 +305,14 @@ public class MainTeleOp extends LinearOpMode {
 
         int velocity = 0;
 
+
+
         if (currentGamepad1.right_trigger - currentGamepad1.left_trigger != 0) {
             if (DcMotor.RunMode.RUN_USING_ENCODER != winchMotor.getMode())
                 winchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            if (winchMotor.getCurrentPosition() < liftMin) {
+            if (!debug && winchMotor.getCurrentPosition() < liftMin) {
                 liftPower = currentGamepad1.right_trigger;
-            } else if (winchMotor.getCurrentPosition() > liftMax) {
+            } else if (!debug && winchMotor.getCurrentPosition() > liftMax) {
                 liftPower = -currentGamepad1.left_trigger;
             } else {
                 liftPower = currentGamepad1.right_trigger - currentGamepad1.left_trigger;

@@ -19,12 +19,18 @@ public class Config {
         public static class Servo {
             public static String clawServo = "claw_open_servo";
             static double clawOpenPostion = 0.36;
-            static double clawClosedPosition = 0.46;
+            static double clawClosedPosition = 0.47;
         }
 
         public static class Wheel {
             public static double wheelRadius = 0.048;
             double gearRatio = 10d/14d;
+            double distanceFromCenter = 0.1703;
+            //42.6 degrees for 1 wheel rotation
+            //1111 ticks per full rotation of robot
+            //4.5 in to center on y
+            //5 in to center x
+            //0.048/(0.1703)*360*.42
         }
     }
 }
