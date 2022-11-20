@@ -26,11 +26,9 @@ public class AutonomousNavigator {
 
     public void move(Position distance, DcMotorEx motor1, DcMotorEx motor2, DcMotorEx motor3, DcMotorEx motor4){
         addInstruction(new Instruction(Instruction.Code.Move, new Object[]{distance, null, motor1, motor2, motor3, motor4}));
-
     }
     public void move(Position distance, Callable<Boolean> stopCondition, DcMotorEx motor1, DcMotorEx motor2, DcMotorEx motor3, DcMotorEx motor4){
         addInstruction(new Instruction(Instruction.Code.Move, new Object[]{distance, stopCondition, motor1, motor2, motor3, motor4}));
-
     }
 
     public void claw(double position, Servo clawServo){
@@ -38,7 +36,7 @@ public class AutonomousNavigator {
     }
 
     public void sleep(int sleepTimeMilliseconds){
-        addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{System.currentTimeMillis() + sleepTimeMilliseconds}));
+        addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{System.currentTimeMillis() + sleepTimeMilliseconds, null}));
     }
 
     public void sleep(int sleepTimeMilliseconds, Callable<Boolean> stopCondition){

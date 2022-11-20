@@ -17,6 +17,12 @@ public class Instruction {
         Lift,
         Sleep
     }
+
+    public enum Reference {
+        Relative,
+        Absolute
+    }
+
     private final Code instructionCode;
     private final Object[] parameters;
     private boolean firstIteration = true;

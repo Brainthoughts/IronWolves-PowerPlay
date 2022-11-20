@@ -214,7 +214,7 @@ public class MainTeleOp extends LinearOpMode {
 
 //        Position position = imu.getPosition();
         Position pos = posCalc.getPosition();
-        telemetry.addData("Positon: ", pos.x + " ," + pos.y + " ," + 0);
+        telemetry.addData("(Not Accurate) Positon: ", pos.x + " ," + pos.y + " ," + 0);
 //        Velocity velocity = imu.getVelocity();
 //        telemetry.addData("Velocity: ", velocity.xVeloc + " ," + velocity.yVeloc + " ," + velocity.zVeloc);
 //        Acceleration acceleration = imu.getAcceleration();
