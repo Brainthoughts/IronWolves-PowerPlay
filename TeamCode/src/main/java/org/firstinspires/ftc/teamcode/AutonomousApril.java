@@ -30,8 +30,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
-import android.icu.util.Measure;
-import android.icu.util.MeasureUnit;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -43,11 +41,18 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.ironwolves.ftc.navutils.AutonomousNavigator;
+import org.openftc.apriltag.AprilTagDetection;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvWebcam;
 
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 /**
@@ -78,8 +83,8 @@ import java.util.concurrent.Callable;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name = "AutonomousEx", group = "Linear Opmode")
-public class AutonomousEx extends LinearOpMode {
+@Autonomous(name = "AutonomousApril", group = "Linear Opmode")
+public class AutonomousApril extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private final ElapsedTime runtime = new ElapsedTime();
@@ -113,12 +118,14 @@ public class AutonomousEx extends LinearOpMode {
         posCalc = new PositionCalculator(frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav = new AutonomousNavigator(posCalc);
 
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        OpenCvWebcam cvWebcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
+
+
         DcMotorEx winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
 
         Servo clawServo = hardwareMap.servo.get("claw_open_servo");
 
-        ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
-        DistanceSensor rangeSenor = hardwareMap.get(DistanceSensor.class, "range_sensor");
         BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
 
 
@@ -128,6 +135,7 @@ public class AutonomousEx extends LinearOpMode {
         backRightMotor.setDirection(DcMotor.Direction.REVERSE);
 
         clawServo.setDirection(Servo.Direction.FORWARD);
+        clawServo.setPosition(Config.Hardware.Servo.clawOpenPostion);
 
         winchMotor.setDirection(DcMotor.Direction.FORWARD);
 
@@ -157,77 +165,49 @@ public class AutonomousEx extends LinearOpMode {
         winchMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         winchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(.042, 1430,1430,480,620);//tagsize in meters; last 4 numbers can be found here: https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
+        cvWebcam.setPipeline(aprilTagDetectionPipeline);
+        cvWebcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                cvWebcam.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                telemetry.addLine("Camera open error!");
+            }
+        });
 
-        // Wait for the game to start (driver presses PLAY)
-
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
-
-        waitForStart();
+        ArrayList<Integer> detectedTags = new ArrayList<>();
+        while (!isStarted() && !isStopRequested()){
+            detectedTags.clear();
+            for (AprilTagDetection detection :
+                    aprilTagDetectionPipeline.getLatestDetections()) {
+                detectedTags.add(detection.id);
+                telemetry.addData("Detected Tag # ", detection.id);
+            }
+            if (aprilTagDetectionPipeline.getLatestDetections().isEmpty()){
+                telemetry.addLine("No Tags Detected");
+            }
+            telemetry.update();
+        }
         runtime.reset();
 
-        autoNav.move(new Position(DistanceUnit.METER, -.05, 0.35, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        Callable<Boolean> isCloseEnough = () -> {
-            int color = 0;
-            int highestColorValue = colorSensor.red();
-
-
-            if (colorSensor.red() > highestColorValue){
-                color = Color.RED;
-                highestColorValue = colorSensor.red();
-            }
-            if (colorSensor.green() > highestColorValue){
-                color = Color.GREEN;
-                highestColorValue = colorSensor.green();
-            }
-            if (colorSensor.blue() > highestColorValue){
-                color = Color.BLUE;
-                highestColorValue = colorSensor.blue();
-            }
-
-            if (Color.RED == color){
-                autoNav.move(new Position(DistanceUnit.METER, 0,.2,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-                autoNav.move(new Position(DistanceUnit.METER, -.6,0,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-            } else if (Color.GREEN == color){
-                autoNav.move(new Position(DistanceUnit.METER, .2,.2,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-            } else if (Color.BLUE == color){
-                autoNav.move(new Position(DistanceUnit.METER, 0,.2,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-                autoNav.move(new Position(DistanceUnit.METER, .8,0,0,300), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-            }
-
-            return color != 0;
-        };
-        autoNav.move(new Position(DistanceUnit.METER, -.1, .2, 0, 250), isCloseEnough, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-
-//        autoNav.custom(() -> {
-//            int color = Color.RED;
-//            int highestColorValue = colorSensor.red();
-//
-//            if (colorSensor.green() > highestColorValue){
-//                color = Color.GREEN;
-//                highestColorValue = colorSensor.green();
-//            }
-//            if (colorSensor.blue() > highestColorValue){
-//                color = Color.BLUE;
-//                highestColorValue = colorSensor.blue();
-//            }
-//
-////            autoNav.move(new Position(DistanceUnit.METER, 0,.5,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-//            if (Color.RED == color){
-//                autoNav.move(new Position(DistanceUnit.METER, -1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-//            } else if (Color.GREEN == color){
-//                //do nothing
-//            } else if (Color.BLUE == color){
-//                autoNav.move(new Position(DistanceUnit.METER, 1,0,0,500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-//            }
-//
-//        });
+        autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        if (detectedTags.isEmpty() || detectedTags.contains(Config.Software.AprilTags.ZONE_2_ID)){
+            //do nothing
+        } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_1_ID)){
+            autoNav.move(new Position(DistanceUnit.METER, -.7, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_3_ID)){
+            autoNav.move(new Position(DistanceUnit.METER, .7, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        }
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             autoNav.run();
-            telemetry.addData("Color:", colorSensor.red() + ", " + colorSensor.green() + ", " + colorSensor.blue());
-            telemetry.addData("Distance: ", rangeSenor.getDistance(DistanceUnit.CM));
             telemetry.update();
         }
 

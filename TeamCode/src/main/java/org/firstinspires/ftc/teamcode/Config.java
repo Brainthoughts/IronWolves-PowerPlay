@@ -24,13 +24,21 @@ public class Config {
 
         public static class Wheel {
             public static double wheelRadius = 0.048;
-            double gearRatio = 10d/14d;
-            double distanceFromCenter = 0.1703;
+            static double gearRatio = 10d/14d;
+            static double distanceFromCenter = 0.1703;
             //42.6 degrees for 1 wheel rotation
             //1111 ticks per full rotation of robot
             //4.5 in to center on y
             //5 in to center x
             //0.048/(0.1703)*360*.42
+        }
+    }
+
+    public static class Software{
+        public static class AprilTags{
+            static int ZONE_1_ID = 213;
+            static int ZONE_2_ID = 214;
+            static int ZONE_3_ID = 215;
         }
     }
 }

@@ -49,9 +49,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.ironwolves.ftc.navutils.AutonomousNavigator;
 import org.opencv.objdetect.QRCodeDetector;
+import org.openftc.apriltag.AprilTagDetection;
+import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 /**
@@ -114,9 +118,8 @@ public class CamTest extends LinearOpMode {
         DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, "back_left_motor");
         DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "back_right_motor");
 
-        OpenCvWebcam cvWebcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"));
-
-        QRCodeDetector qrCodeDetector = new QRCodeDetector();
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        OpenCvWebcam cvWebcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
 
 
         posCalc = new PositionCalculator(frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
@@ -171,6 +174,26 @@ public class CamTest extends LinearOpMode {
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+        AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(.042, 1430,1430,480,620);//tagsize in meters; last 4 numbers can be found here: https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
+        cvWebcam.setPipeline(aprilTagDetectionPipeline);
+        final boolean[] streaming = {false};
+        cvWebcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                // Usually this is where you'll want to start streaming from the camera (see section 4)
+                cvWebcam.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
 
         waitForStart();
         runtime.reset();
@@ -178,7 +201,14 @@ public class CamTest extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-//            qrCodeDetector.detectAndDecode(cvWebcam.
+            ArrayList<AprilTagDetection> detections = aprilTagDetectionPipeline.getLatestDetections();
+            for (AprilTagDetection detection:detections) {
+                telemetry.addData("Detected Tag #: ", detection.id);
+            }
+            if (detections.isEmpty()){
+                telemetry.addLine("No Tags Detected");
+            }
+            telemetry.update();
         }
 
     }
