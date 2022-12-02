@@ -91,8 +91,6 @@ public class MainTeleOp extends LinearOpMode {
 
     private Servo clawServo = null;
 
-    private ColorSensor colorSensor = null;
-    private DistanceSensor rangeSenor = null;
     private BNO055IMU imu = null;
     Orientation angles;
 
@@ -132,8 +130,6 @@ public class MainTeleOp extends LinearOpMode {
 
         clawServo = hardwareMap.servo.get("claw_open_servo");
 
-        colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
-        rangeSenor = hardwareMap.get(DistanceSensor.class, "range_sensor");
         imu = hardwareMap.get(BNO055IMU.class, "imu");
 
 
@@ -208,9 +204,7 @@ public class MainTeleOp extends LinearOpMode {
     }
 
     private void sensors() {
-        telemetry.addData("Color:", colorSensor.red() + ", " + colorSensor.green() + ", " + colorSensor.blue());
-        telemetry.addData("Distance: ", rangeSenor.getDistance(DistanceUnit.CM));
-        telemetry.addData("EncFL: ", frontLeftMotor.getCurrentPosition());
+//        telemetry.addData("EncFL: ", frontLeftMotor.getCurrentPosition());
 
 //        Position position = imu.getPosition();
         Position pos = posCalc.getPosition();
