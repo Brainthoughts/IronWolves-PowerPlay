@@ -33,10 +33,8 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -44,7 +42,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
@@ -119,16 +116,16 @@ public class MainTeleOp extends LinearOpMode {
         } catch (RobotCoreException e) {
             e.printStackTrace();
         }
-        frontLeftMotor = hardwareMap.get(DcMotorEx.class, "front_left_motor");
-        frontRightMotor = hardwareMap.get(DcMotorEx.class, "front_right_motor");
-        backLeftMotor = hardwareMap.get(DcMotorEx.class, "back_left_motor");
-        backRightMotor = hardwareMap.get(DcMotorEx.class, "back_right_motor");
+        frontLeftMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.frontLeftMotorName);
+        frontRightMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.frontRightMotorName);
+        backLeftMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.backLeftMotorName);
+        backRightMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.backRightMotorName);
 
         posCalc = new PositionCalculator(frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
-        winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
+        winchMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.winchMotorName);
 
-        clawServo = hardwareMap.servo.get("claw_open_servo");
+        clawServo = hardwareMap.servo.get(Config.Hardware.Servo.clawServoName);
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
 

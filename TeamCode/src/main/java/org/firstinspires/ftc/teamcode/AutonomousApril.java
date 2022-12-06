@@ -29,15 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -53,7 +49,6 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -110,10 +105,10 @@ public class AutonomousApril extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
 
-        DcMotorEx frontLeftMotor = hardwareMap.get(DcMotorEx.class, "front_left_motor");
-        DcMotorEx frontRightMotor = hardwareMap.get(DcMotorEx.class, "front_right_motor");
-        DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, "back_left_motor");
-        DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "back_right_motor");
+        DcMotorEx frontLeftMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.frontLeftMotorName);
+        DcMotorEx frontRightMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.frontRightMotorName);
+        DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.backLeftMotorName);
+        DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.backRightMotorName);
 
         posCalc = new PositionCalculator(frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav = new AutonomousNavigator(posCalc);
@@ -122,9 +117,9 @@ public class AutonomousApril extends LinearOpMode {
         OpenCvWebcam cvWebcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
 
 
-        DcMotorEx winchMotor = hardwareMap.get(DcMotorEx.class, "winch_motor");
+        DcMotorEx winchMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.winchMotorName);
 
-        Servo clawServo = hardwareMap.servo.get("claw_open_servo");
+        Servo clawServo = hardwareMap.servo.get(Config.Hardware.Servo.clawServoName);
 
         BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
 

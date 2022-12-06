@@ -17,14 +17,14 @@ public class PositionCalculator {
 
     public Position position = new Position(DistanceUnit.METER,0,0,0, 1);
 
-    private DcMotorEx frontLeftMotor;
-    private DcMotorEx frontRightMotor;
-    private DcMotorEx backLeftMotor;
-    private DcMotorEx backRightMotor;
+    private final DcMotorEx frontLeftMotor;
+    private final DcMotorEx frontRightMotor;
+    private final DcMotorEx backLeftMotor;
+    private final DcMotorEx backRightMotor;
 
-    private final double ppr = ((1+(46.0/11)) * 28);
-    private final double wheelRadius = 0.048; //in meters
-    private final double gearRatio = 10d/14d;
+    private final double ppr = Config.Hardware.Motor.driveMotorPPR;
+    private final double wheelRadius = Config.Hardware.Wheel.wheelRadius; //in meters
+    private final double gearRatio = Config.Hardware.Wheel.gearRatio;
 
     private int lastPos;
 
