@@ -285,11 +285,11 @@ public class MainTeleOp extends LinearOpMode {
         }
 
         if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper) {
-            if (targetLiftPostionIndex > 0)
-                targetLiftPostionIndex--; //if the button was pressed down, lower the targetLiftPosition
+            if (targetLiftPostionIndex != 0)
+                targetLiftPostionIndex = 0; //if the button was pressed down, lower the targetLiftPosition to bottom
             targetLiftPostion = postions[targetLiftPostionIndex];
         } else if (targetLiftPostionIndex < postions.length - 1 && !previousGamepad1.right_bumper && currentGamepad1.right_bumper) {
-            targetLiftPostionIndex++; //if the button was pressed down, raise the targetLiftPosition
+            targetLiftPostionIndex = postions.length-1; //if the button was pressed down, raise the targetLiftPosition to top
             targetLiftPostion = postions[targetLiftPostionIndex];
         }
 

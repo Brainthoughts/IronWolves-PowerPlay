@@ -191,7 +191,7 @@ public class AutonomousApril extends LinearOpMode {
         }
         runtime.reset();
 
-        autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.move(new Position(DistanceUnit.METER, 0, .7, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         if (detectedTags.isEmpty() || detectedTags.contains(Config.Software.AprilTags.ZONE_2_ID)){
             //do nothing
         } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_1_ID)){
