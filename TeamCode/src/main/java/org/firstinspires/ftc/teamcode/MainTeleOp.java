@@ -125,19 +125,19 @@ public class MainTeleOp extends LinearOpMode {
 
         winchMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.winchMotorName);
 
-        clawServo = hardwareMap.servo.get(Config.Hardware.Servo.clawServoName);
+        clawServo = hardwareMap.servo.get(Config.Hardware.Servo.clawOpenServoName);
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
 
 
-        frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-        frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-        backRightMotor.setDirection(DcMotor.Direction.REVERSE);
+        frontLeftMotor.setDirection(Config.Hardware.Motor.frontLeftMotorDirection);
+        frontRightMotor.setDirection(Config.Hardware.Motor.frontRightMotorDirection);
+        backLeftMotor.setDirection(Config.Hardware.Motor.backLeftMotorDirection);
+        backRightMotor.setDirection(Config.Hardware.Motor.backRightMotorDirection);
 
-        clawServo.setDirection(Servo.Direction.FORWARD);
+        clawServo.setDirection(Config.Hardware.Servo.clawServoDirection);
 
-        winchMotor.setDirection(DcMotor.Direction.FORWARD);
+        winchMotor.setDirection(Config.Hardware.Motor.winchMotorDirection);
 
         frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -217,9 +217,9 @@ public class MainTeleOp extends LinearOpMode {
     void drive() {
         double max;
 
-        double verticalCoefficient = .4d;
-        double horizontalCoefficient = .35d;
-        double rotationCoefficient = .3d;
+        double verticalCoefficient = Config.Software.Motor.verticalCoefficient;
+        double horizontalCoefficient = Config.Software.Motor.horizontalCoefficient;
+        double rotationCoefficient = Config.Software.Motor.rotationCoefficient;
 
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
         double vertical = convertMotorPower(-currentGamepad1.left_stick_y) * verticalCoefficient;  // Note: pushing stick forward gives negative value
@@ -285,8 +285,9 @@ public class MainTeleOp extends LinearOpMode {
         }
 
         if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper) {
-            if (targetLiftPostionIndex != 0)
+            if (targetLiftPostionIndex != 0) {
                 targetLiftPostionIndex = 0; //if the button was pressed down, lower the targetLiftPosition to bottom
+            }
             targetLiftPostion = postions[targetLiftPostionIndex];
         } else if (targetLiftPostionIndex < postions.length - 1 && !previousGamepad1.right_bumper && currentGamepad1.right_bumper) {
             targetLiftPostionIndex = postions.length-1; //if the button was pressed down, raise the targetLiftPosition to top
@@ -367,16 +368,13 @@ public class MainTeleOp extends LinearOpMode {
 
 
     void claw() {
-        double openPostion = Config.Hardware.Servo.clawOpenPostion;
-        double closedPosition = Config.Hardware.Servo.clawClosedPosition;
-
         if (!previousGamepad1.a && currentGamepad1.a) {
             targetClawOpen = !targetClawOpen;
-            targetClawPosition = targetClawOpen ? openPostion : closedPosition; //if the button was pressed down, toggle the claw
+            targetClawPosition = targetClawOpen ? Config.Hardware.Servo.clawOpenPostion : Config.Hardware.Servo.clawClosedPosition; //if the button was pressed down, toggle the claw
         }
-        clawServo.setPosition(targetClawPosition);
-        telemetry.addData("Servo Position", "%f", clawServo.getPosition());
 
+        clawServo.setPosition(targetClawPosition);
+        telemetry.addData("Claw Servo Position", "%f", clawServo.getPosition());
     }
 
     String formatAngle(AngleUnit angleUnit, double angle) {

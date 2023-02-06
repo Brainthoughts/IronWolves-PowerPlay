@@ -30,10 +30,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -42,13 +44,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.ironwolves.ftc.navutils.AutonomousNavigator;
-import org.openftc.apriltag.AprilTagDetection;
-import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
-
-import java.util.ArrayList;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -78,8 +75,8 @@ import java.util.ArrayList;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name = "AutonomousApril", group = "Linear Opmode")
-public class AutonomousApril extends LinearOpMode {
+@TeleOp(name = "Distance Testing", group = "Linear Opmode")
+public class DistanceTest extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private final ElapsedTime runtime = new ElapsedTime();
@@ -96,8 +93,8 @@ public class AutonomousApril extends LinearOpMode {
     PositionCalculator posCalc;
     AutonomousNavigator autoNav;
 
-    int test = 0;
-
+    private final Gamepad previousGamepad1 = new Gamepad();
+    private final Gamepad currentGamepad1 = new Gamepad();
 
     @Override
     public void runOpMode() {
@@ -160,50 +157,34 @@ public class AutonomousApril extends LinearOpMode {
         winchMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         winchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(.042, 1430,1430,480,620);//tagsize in meters; last 4 numbers can be found here: https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
-        cvWebcam.setPipeline(aprilTagDetectionPipeline);
-        cvWebcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                cvWebcam.startStreaming(1280, 720, OpenCvCameraRotation.SIDEWAYS_RIGHT);
-            }
-            @Override
-            public void onError(int errorCode)
-            {
-                telemetry.addLine("Camera open error!");
-            }
-        });
 
-        ArrayList<Integer> detectedTags = new ArrayList<>();
-        while (!isStarted() && !isStopRequested()){
-            detectedTags.clear();
-            for (AprilTagDetection detection :
-                    aprilTagDetectionPipeline.getLatestDetections()) {
-                detectedTags.add(detection.id);
-                telemetry.addData("Detected Tag # ", detection.id);
-            }
-            if (aprilTagDetectionPipeline.getLatestDetections().isEmpty()){
-                telemetry.addLine("No Tags Detected");
-            }
-            telemetry.update();
-        }
+
+        waitForStart();
         runtime.reset();
-
-        autoNav.move(new Position(DistanceUnit.METER, 0, .7, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        if (detectedTags.isEmpty() || detectedTags.contains(Config.Software.AprilTags.ZONE_2_ID)){
-            //do nothing
-        } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_1_ID)){
-            autoNav.move(new Position(DistanceUnit.METER, -.7, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_3_ID)){
-            autoNav.move(new Position(DistanceUnit.METER, .7, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        }
-
-        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            try {
+                currentGamepad1.copy(gamepad1);
+            } catch (RobotCoreException e) {
+                e.printStackTrace();
+            }
+//////////////////////
+            if (currentGamepad1.y && previousGamepad1.y != currentGamepad1.y){
+                autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+            } else if (currentGamepad1.a && previousGamepad1.a != currentGamepad1.a){
+                autoNav.move(new Position(DistanceUnit.METER, 0, -1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+            } else if (currentGamepad1.b && previousGamepad1.b != currentGamepad1.b){
+                autoNav.move(new Position(DistanceUnit.METER, 1, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+            } else if (currentGamepad1.x && previousGamepad1.x != currentGamepad1.x){
+                autoNav.move(new Position(DistanceUnit.METER, -1, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+            }
             autoNav.run();
             telemetry.update();
+//////////////////////
+            try {
+                previousGamepad1.copy(currentGamepad1);
+            } catch (RobotCoreException e) {
+                e.printStackTrace();
+            }
         }
 
     }

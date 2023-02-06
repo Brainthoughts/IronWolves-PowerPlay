@@ -3,7 +3,9 @@ package org.ironwolves.ftc.navutils;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.ConceptNullOp;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.teamcode.Config;
 import org.firstinspires.ftc.teamcode.PositionCalculator;
 
 import java.util.concurrent.Callable;
@@ -118,10 +120,10 @@ public class Instruction {
             int backLeftEncoder = backLeftMotor.getCurrentPosition();
             int backRightEncoder = backRightMotor.getCurrentPosition();
 
-            frontLeftEncoder += posCalc.distanceToMotorRotation(offset.y) + posCalc.distanceToMotorRotation(offset.x);
-            frontRightEncoder += posCalc.distanceToMotorRotation(offset.y) - posCalc.distanceToMotorRotation(offset.x);
-            backLeftEncoder += posCalc.distanceToMotorRotation(offset.y) - posCalc.distanceToMotorRotation(offset.x);
-            backRightEncoder += posCalc.distanceToMotorRotation(offset.y) + posCalc.distanceToMotorRotation(offset.x);
+            frontLeftEncoder += posCalc.distanceToMotorRotation(offset.y) + posCalc.distanceToMotorRotation(offset.x*Config.Hardware.Motor.strafeMultiplier);
+            frontRightEncoder += posCalc.distanceToMotorRotation(offset.y) - posCalc.distanceToMotorRotation(offset.x*Config.Hardware.Motor.strafeMultiplier);
+            backLeftEncoder += posCalc.distanceToMotorRotation(offset.y) - posCalc.distanceToMotorRotation(offset.x*Config.Hardware.Motor.strafeMultiplier);
+            backRightEncoder += posCalc.distanceToMotorRotation(offset.y) + posCalc.distanceToMotorRotation(offset.x*Config.Hardware.Motor.strafeMultiplier);
 
             frontLeftMotor.setTargetPosition(frontLeftEncoder);
             frontRightMotor.setTargetPosition(frontRightEncoder);

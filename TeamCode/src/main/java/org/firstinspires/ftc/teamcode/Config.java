@@ -1,28 +1,40 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
 public class Config {
     public static class Hardware {
         public static class Motor {
             public static String frontLeftMotorName = "leftFront";
+            public static DcMotor.Direction frontLeftMotorDirection = DcMotor.Direction.REVERSE;
             public static String frontRightMotorName = "rightFront";
+            public static DcMotor.Direction frontRightMotorDirection = DcMotor.Direction.FORWARD;
             public static String backLeftMotorName = "leftRear";
+            public static DcMotor.Direction backLeftMotorDirection = DcMotor.Direction.REVERSE;
             public static String backRightMotorName = "rightRear";
+            public static DcMotor.Direction backRightMotorDirection = DcMotor.Direction.FORWARD;
             public static String winchMotorName = "winch_motor";
+            public static DcMotor.Direction winchMotorDirection = DcMotor.Direction.FORWARD;
 
-            public static double driveMotorPPR =  ((1+(46.0/11)) * 28);
+            public static double driveMotorPPR =  ((((1+(46d/17))) * (1+(46d/11))) * 28);
             public static double winchMotorPPR = ((((1+(46d/17))) * (1+(46d/11))) * 28);
+            public static double strafeMultiplier = 100d/92d;
 
         }
 
         public static class Servo {
-            public static String clawServoName = "claw_open_servo";
+            public static String clawOpenServoName = "claw_open_servo";
+            public static com.qualcomm.robotcore.hardware.Servo.Direction clawServoDirection = com.qualcomm.robotcore.hardware.Servo.Direction.FORWARD;
             static double clawOpenPostion = 0.36;
-            static double clawClosedPosition = 0.47;
+            static double clawClosedPosition = 0.5;
+            public static String calibrateServoName = "calibrate_servo";
+
         }
 
         public static class Wheel {
             public static double wheelRadius = 0.048;
-            static double gearRatio = 10d/14d;
+            static double gearRatio = 1d;
             static double distanceFromCenter = 0.1703;
             //42.6 degrees for 1 wheel rotation
             //1111 ticks per full rotation of robot
@@ -37,6 +49,13 @@ public class Config {
             static int ZONE_1_ID = 213;
             static int ZONE_2_ID = 214;
             static int ZONE_3_ID = 215;
+        }
+
+        public static class Motor {
+            public static double verticalCoefficient = 1d;
+            public static double horizontalCoefficient = 1d;
+            public static double rotationCoefficient = 1d;
+
         }
     }
 }
