@@ -164,9 +164,10 @@ public class DistanceTest extends LinearOpMode {
         while (opModeIsActive()) {
             try {
                 currentGamepad1.copy(gamepad1);
-            } catch (RobotCoreException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
+
 //////////////////////
             if (currentGamepad1.y && previousGamepad1.y != currentGamepad1.y){
                 autoNav.move(new Position(DistanceUnit.METER, 0, 1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
@@ -182,7 +183,7 @@ public class DistanceTest extends LinearOpMode {
 //////////////////////
             try {
                 previousGamepad1.copy(currentGamepad1);
-            } catch (RobotCoreException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

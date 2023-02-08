@@ -113,7 +113,7 @@ public class MainTeleOp extends LinearOpMode {
         // to the names assigned during the robot configuration step on the DS or RC devices.
         try {
             previousGamepad1.copy(gamepad1);
-        } catch (RobotCoreException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         frontLeftMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.frontLeftMotorName);
@@ -182,7 +182,7 @@ public class MainTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             try {
                 currentGamepad1.copy(gamepad1);
-            } catch (RobotCoreException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -194,7 +194,7 @@ public class MainTeleOp extends LinearOpMode {
 
             try {
                 previousGamepad1.copy(currentGamepad1);
-            } catch (RobotCoreException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

@@ -19,14 +19,14 @@ public class Config {
 
             public static double driveMotorPPR =  ((((1+(46d/17))) * (1+(46d/11))) * 28);
             public static double winchMotorPPR = ((((1+(46d/17))) * (1+(46d/11))) * 28);
-            public static double strafeMultiplier = 100d/92d;
+            public static double strafeMultiplier = 100d/89d;
 
         }
 
         public static class Servo {
             public static String clawOpenServoName = "claw_open_servo";
             public static com.qualcomm.robotcore.hardware.Servo.Direction clawServoDirection = com.qualcomm.robotcore.hardware.Servo.Direction.FORWARD;
-            static double clawOpenPostion = 0.36;
+            static double clawOpenPostion = 0.68;
             static double clawClosedPosition = 0.5;
             public static String calibrateServoName = "calibrate_servo";
 
