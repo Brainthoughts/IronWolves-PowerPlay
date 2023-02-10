@@ -78,8 +78,8 @@ import java.util.ArrayList;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name = "AutonomousApril", group = "Linear Opmode")
-public class AutonomousApril extends LinearOpMode {
+@Autonomous(name = "AutonomousAprilLeft", group = "Linear Opmode")
+public class AutonomousAprilLeft extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private final ElapsedTime runtime = new ElapsedTime();
@@ -191,15 +191,26 @@ public class AutonomousApril extends LinearOpMode {
         }
         runtime.reset();
 
-        autoNav.move(new Position(DistanceUnit.METER, 0, .7, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        if (detectedTags.isEmpty() || detectedTags.contains(Config.Software.AprilTags.ZONE_2_ID)){
-            //do nothing
-        } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_1_ID)){
-            autoNav.move(new Position(DistanceUnit.METER, -.7, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_3_ID)){
-            autoNav.move(new Position(DistanceUnit.METER, .7, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        }
+        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
+        autoNav.move(new Position(DistanceUnit.METER, 0.15, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.move(new Position(DistanceUnit.METER, 0, 1.4, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.lift(1850, 1000, winchMotor);
+        autoNav.move(new Position(DistanceUnit.METER, 0.34, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
+        autoNav.claw(Config.Hardware.Servo.clawOpenPostion, clawServo);
+        autoNav.sleep(500L);
+        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
+
+        autoNav.move(new Position(DistanceUnit.METER, -0.34, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.lift(10, 1000, winchMotor);
+        autoNav.move(new Position(DistanceUnit.METER, 0, -.7, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        if (detectedTags.isEmpty() || detectedTags.contains(Config.Software.AprilTags.ZONE_2_ID)){
+            //do nothings
+        } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_1_ID)){
+            autoNav.move(new Position(DistanceUnit.METER, -.6, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_3_ID)){
+            autoNav.move(new Position(DistanceUnit.METER, .6, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        }
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             autoNav.run();

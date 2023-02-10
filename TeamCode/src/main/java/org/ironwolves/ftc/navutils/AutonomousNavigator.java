@@ -35,12 +35,16 @@ public class AutonomousNavigator {
         addInstruction(new Instruction(Instruction.Code.Claw, new Object[]{position, clawServo}));
     }
 
-    public void sleep(int sleepTimeMilliseconds){
-        addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{System.currentTimeMillis() + sleepTimeMilliseconds, null}));
+    public void lift(int position, int speed, DcMotorEx winchMotor){
+        addInstruction(new Instruction(Instruction.Code.Lift, new Object[]{position, speed, winchMotor}));
     }
 
-    public void sleep(int sleepTimeMilliseconds, Callable<Boolean> stopCondition){
-        addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{System.currentTimeMillis() + sleepTimeMilliseconds, stopCondition}));
+    public void sleep(long sleepTimeMilliseconds){
+        addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{sleepTimeMilliseconds, null}));
+    }
+
+    public void sleep(long sleepTimeMilliseconds, Callable<Boolean> stopCondition){
+        addInstruction(new Instruction(Instruction.Code.Sleep, new Object[]{sleepTimeMilliseconds, stopCondition}));
     }
 
     public void rotate(){

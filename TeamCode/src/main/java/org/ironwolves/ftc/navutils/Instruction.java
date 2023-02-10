@@ -1,8 +1,10 @@
 package org.ironwolves.ftc.navutils;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.apache.commons.math3.linear.SparseRealMatrix;
 import org.firstinspires.ftc.robotcontroller.external.samples.ConceptNullOp;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.Config;
@@ -75,7 +77,12 @@ public class Instruction {
     private void sleep() throws Exception {
         long sleepTime = (long) parameters[0];
         Callable<Boolean> stopCondition = (Callable<Boolean>) parameters[1];
-        if ((stopCondition != null && stopCondition.call()) | System.currentTimeMillis() - sleepTime > 0){
+        if (firstIteration){
+            parameters[0] = System.currentTimeMillis() + (long) parameters[0];
+            sleepTime = (long) parameters[0];
+        }
+
+        if ((stopCondition != null && stopCondition.call()) || (System.currentTimeMillis() - sleepTime > 0)){
             complete = true;
         }
     }
@@ -86,16 +93,24 @@ public class Instruction {
 
         if (firstIteration){
             clawServo.setPosition(targetPosition);
-        }
-
-        if (clawServo.getPosition() - targetPosition == 0){
             complete = true;
         }
 
     }
 
     private void lift() {
+        int targetPosition = (int) parameters[0];
+        int liftSpeed = (int) parameters[1];
+        DcMotorEx winchMotor = (DcMotorEx) parameters[2];
 
+        if (firstIteration) {
+            winchMotor.setVelocity(liftSpeed);
+            winchMotor.setTargetPosition(targetPosition);
+        }
+
+        if (Math.abs(winchMotor.getCurrentPosition() - targetPosition) < 10){
+            complete = true;
+        }
     }
 
     private void rotate() {

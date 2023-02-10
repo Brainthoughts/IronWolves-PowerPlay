@@ -25,7 +25,7 @@ public class Config {
 
         public static class Servo {
             public static String clawOpenServoName = "claw_open_servo";
-            public static com.qualcomm.robotcore.hardware.Servo.Direction clawServoDirection = com.qualcomm.robotcore.hardware.Servo.Direction.FORWARD;
+            public static com.qualcomm.robotcore.hardware.Servo.Direction clawServoDirection = com.qualcomm.robotcore.hardware.Servo.Direction.REVERSE;
             static double clawOpenPostion = 0.68;
             static double clawClosedPosition = 0.5;
             public static String calibrateServoName = "calibrate_servo";
