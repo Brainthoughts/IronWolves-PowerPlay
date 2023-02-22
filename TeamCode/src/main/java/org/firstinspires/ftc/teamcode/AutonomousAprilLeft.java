@@ -192,18 +192,19 @@ public class AutonomousAprilLeft extends LinearOpMode {
         runtime.reset();
 
         autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
-        autoNav.move(new Position(DistanceUnit.METER, 0.15, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.move(new Position(DistanceUnit.METER, 0, .02, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.move(new Position(DistanceUnit.METER, 0.13, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav.move(new Position(DistanceUnit.METER, 0, 1.4, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        autoNav.lift(1850, 1000, winchMotor);
-        autoNav.move(new Position(DistanceUnit.METER, 0.34, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.lift(1825, 1000, winchMotor);
+        autoNav.move(new Position(DistanceUnit.METER, 0.285, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
         autoNav.claw(Config.Hardware.Servo.clawOpenPostion, clawServo);
         autoNav.sleep(500L);
         autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
 
-        autoNav.move(new Position(DistanceUnit.METER, -0.34, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.move(new Position(DistanceUnit.METER, -0.3, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav.lift(10, 1000, winchMotor);
-        autoNav.move(new Position(DistanceUnit.METER, 0, -.7, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
+        autoNav.move(new Position(DistanceUnit.METER, 0, -.1, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         if (detectedTags.isEmpty() || detectedTags.contains(Config.Software.AprilTags.ZONE_2_ID)){
             //do nothings
         } else if (detectedTags.contains(Config.Software.AprilTags.ZONE_1_ID)){

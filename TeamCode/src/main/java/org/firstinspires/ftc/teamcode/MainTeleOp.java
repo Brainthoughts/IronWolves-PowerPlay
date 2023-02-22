@@ -87,6 +87,8 @@ public class MainTeleOp extends LinearOpMode {
     private DcMotorEx winchMotor = null;
 
     private Servo clawServo = null;
+    private Servo clawTiltServo = null;
+
 
     private BNO055IMU imu = null;
     Orientation angles;
@@ -126,6 +128,7 @@ public class MainTeleOp extends LinearOpMode {
         winchMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.winchMotorName);
 
         clawServo = hardwareMap.servo.get(Config.Hardware.Servo.clawOpenServoName);
+        clawTiltServo = hardwareMap.servo.get(Config.Hardware.Servo.clawTiltServoName);
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
 
@@ -136,6 +139,7 @@ public class MainTeleOp extends LinearOpMode {
         backRightMotor.setDirection(Config.Hardware.Motor.backRightMotorDirection);
 
         clawServo.setDirection(Config.Hardware.Servo.clawServoDirection);
+        clawTiltServo.setDirection(Config.Hardware.Servo.clawTiltServoDirection);
 
         winchMotor.setDirection(Config.Hardware.Motor.winchMotorDirection);
 
@@ -266,14 +270,14 @@ public class MainTeleOp extends LinearOpMode {
 
     void lift() {
         int liftMin = 10;
-        int liftMax = 1975;
+        int liftMax = 1900;
         int minLiftSpeed = 250;
         int minLiftVelocity = -900;
         int maxLiftVelocity = 1500;
         int endBuffer = 250;
         double liftPower;
         boolean debug = false;
-        int[] postions = {10, 820, 1320, 1850};
+        int[] postions = {10, 820, 1320, 1825};
 
         if (currentGamepad1.y){
             debug = true;
@@ -372,6 +376,8 @@ public class MainTeleOp extends LinearOpMode {
             targetClawOpen = !targetClawOpen;
             targetClawPosition = targetClawOpen ? Config.Hardware.Servo.clawOpenPostion : Config.Hardware.Servo.clawClosedPosition; //if the button was pressed down, toggle the claw
         }
+
+        //todo implement claw tilt
 
         clawServo.setPosition(targetClawPosition);
         telemetry.addData("Claw Servo Position", "%f", clawServo.getPosition());
