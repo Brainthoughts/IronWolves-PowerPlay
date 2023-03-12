@@ -120,6 +120,7 @@ public class AutonomousAprilRight extends LinearOpMode {
         DcMotorEx winchMotor = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motor.winchMotorName);
 
         Servo clawServo = hardwareMap.servo.get(Config.Hardware.Servo.clawOpenServoName);
+        Servo clawTiltServo = hardwareMap.servo.get(Config.Hardware.Servo.clawTiltServoName);
 
         BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
 
@@ -130,6 +131,7 @@ public class AutonomousAprilRight extends LinearOpMode {
         backRightMotor.setDirection(Config.Hardware.Motor.backRightMotorDirection);
 
         clawServo.setDirection(Config.Hardware.Servo.clawServoDirection);
+        clawTiltServo.setDirection(Config.Hardware.Servo.clawTiltServoDirection);
 
         winchMotor.setDirection(Config.Hardware.Motor.winchMotorDirection);
         clawServo.setPosition(Config.Hardware.Servo.clawOpenPostion);
@@ -191,16 +193,17 @@ public class AutonomousAprilRight extends LinearOpMode {
         }
         runtime.reset();
 
-        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
+        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo, Config.Hardware.Servo.clawTiltServoLow, clawTiltServo);
         autoNav.move(new Position(DistanceUnit.METER, 0, .02, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav.move(new Position(DistanceUnit.METER, 0.13, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav.move(new Position(DistanceUnit.METER, 0, 1.4, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
-        autoNav.lift(1825, 1000, winchMotor);
+        autoNav.lift(1610, 1000, winchMotor);
+        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo, Config.Hardware.Servo.clawTiltServoHigh, clawTiltServo);
         autoNav.move(new Position(DistanceUnit.METER, -0.3, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
 
-        autoNav.claw(Config.Hardware.Servo.clawOpenPostion, clawServo);
+        autoNav.claw(Config.Hardware.Servo.clawOpenPostion, clawServo, Config.Hardware.Servo.clawTiltServoLow, clawTiltServo);
         autoNav.sleep(500L);
-        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo);
+        autoNav.claw(Config.Hardware.Servo.clawClosedPosition, clawServo, Config.Hardware.Servo.clawTiltServoLow, clawTiltServo);
 
         autoNav.move(new Position(DistanceUnit.METER, 0.3, 0, 0, 500), frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor);
         autoNav.lift(10, 1000, winchMotor);

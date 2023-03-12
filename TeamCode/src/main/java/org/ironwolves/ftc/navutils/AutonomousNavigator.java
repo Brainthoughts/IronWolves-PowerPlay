@@ -31,8 +31,8 @@ public class AutonomousNavigator {
         addInstruction(new Instruction(Instruction.Code.Move, new Object[]{distance, stopCondition, motor1, motor2, motor3, motor4}));
     }
 
-    public void claw(double position, Servo clawServo){
-        addInstruction(new Instruction(Instruction.Code.Claw, new Object[]{position, clawServo}));
+    public void claw(double openPosition, Servo clawServo, double tiltPosition, Servo tiltServo){
+        addInstruction(new Instruction(Instruction.Code.Claw, new Object[]{openPosition, clawServo}));
     }
 
     public void lift(int position, int speed, DcMotorEx winchMotor){

@@ -30,8 +30,9 @@ public class Config {
             static double clawClosedPosition = 0.5;
             static String clawTiltServoName = "claw_tilt_servo";
             public static com.qualcomm.robotcore.hardware.Servo.Direction clawTiltServoDirection = com.qualcomm.robotcore.hardware.Servo.Direction.REVERSE;
-            static double clawTiltServoLow = .5;
-            static double clawTiltServoHigh = .66;
+            static double clawTiltServoLow = .55;
+            static double clawTiltServoHigh = .8;
+            static int clawAutoTiltHeight = (int) (1900/(100/17.5));
 
             public static String calibrateServoName = "calibrate_servo";
 

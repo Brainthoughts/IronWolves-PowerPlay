@@ -98,11 +98,11 @@ public class MainTeleOp extends LinearOpMode {
     int targetLiftPostionIndex = 0;
 
     boolean targetClawOpen = false;
+    boolean targetClawTilt = false;
+
     double targetClawPosition = Config.Hardware.Servo.clawClosedPosition;
 
     PositionCalculator posCalc;
-
-    int test = 0;
 
 
     private final Gamepad previousGamepad1 = new Gamepad();
@@ -270,14 +270,14 @@ public class MainTeleOp extends LinearOpMode {
 
     void lift() {
         int liftMin = 10;
-        int liftMax = 1900;
+        int liftMax = 1700;
         int minLiftSpeed = 250;
         int minLiftVelocity = -900;
         int maxLiftVelocity = 1500;
         int endBuffer = 250;
         double liftPower;
         boolean debug = false;
-        int[] postions = {10, 820, 1320, 1825};
+        int[] postions = {10, 820, 1320, 1610};
 
         if (currentGamepad1.y){
             debug = true;
@@ -372,12 +372,23 @@ public class MainTeleOp extends LinearOpMode {
 
 
     void claw() {
+        //auto claw tilt when lift crosses certain range
+//        int winchPosition = winchMotor.getCurrentPosition();
+//        if (winchPosition >= Config.Hardware.Servo.clawAutoTiltHeight && winchPosition <= Config.Hardware.Servo.clawAutoTiltHeight * 1.15){
+//            clawTiltServo.setPosition(Config.Hardware.Servo.clawTiltServoHigh);
+//        } else if (winchPosition <= Config.Hardware.Servo.clawAutoTiltHeight && winchPosition >= Config.Hardware.Servo.clawAutoTiltHeight * (1/1.15)){
+//            clawTiltServo.setPosition(Config.Hardware.Servo.clawTiltServoLow);
+//        }
+
         if (!previousGamepad1.a && currentGamepad1.a) {
             targetClawOpen = !targetClawOpen;
             targetClawPosition = targetClawOpen ? Config.Hardware.Servo.clawOpenPostion : Config.Hardware.Servo.clawClosedPosition; //if the button was pressed down, toggle the claw
         }
 
-        //todo implement claw tilt
+       if (!previousGamepad1.dpad_down && currentGamepad1.dpad_down) {
+           targetClawTilt = !targetClawTilt;
+           clawTiltServo.setPosition(targetClawTilt ? Config.Hardware.Servo.clawTiltServoHigh : Config.Hardware.Servo.clawTiltServoLow); //if the button was pressed down, toggle the claw tilt
+        }
 
         clawServo.setPosition(targetClawPosition);
         telemetry.addData("Claw Servo Position", "%f", clawServo.getPosition());

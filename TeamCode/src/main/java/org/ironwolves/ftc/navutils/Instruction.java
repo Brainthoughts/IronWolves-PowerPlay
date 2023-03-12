@@ -1,11 +1,8 @@
 package org.ironwolves.ftc.navutils;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.apache.commons.math3.linear.SparseRealMatrix;
-import org.firstinspires.ftc.robotcontroller.external.samples.ConceptNullOp;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.Config;
 import org.firstinspires.ftc.teamcode.PositionCalculator;
@@ -88,11 +85,15 @@ public class Instruction {
     }
 
     private void claw() {
-        double targetPosition = (double) parameters[0];
+        double targetOpenPosition = (double) parameters[0];
         Servo clawServo = (Servo) parameters[1];
+        double targetTiltPosition = (double) parameters[2];
+        Servo clawTiltServo = (Servo) parameters[3];
+
 
         if (firstIteration){
-            clawServo.setPosition(targetPosition);
+            clawServo.setPosition(targetOpenPosition);
+            clawTiltServo.setPosition(targetTiltPosition);
             complete = true;
         }
 
