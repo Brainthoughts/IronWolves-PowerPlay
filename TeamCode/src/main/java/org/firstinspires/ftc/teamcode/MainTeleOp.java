@@ -139,6 +139,7 @@ public class MainTeleOp extends LinearOpMode {
         backRightMotor.setDirection(Config.Hardware.Motor.backRightMotorDirection);
 
         clawServo.setDirection(Config.Hardware.Servo.clawServoDirection);
+        clawServo.setPosition(Config.Hardware.Servo.clawOpenPostion);
         clawTiltServo.setDirection(Config.Hardware.Servo.clawTiltServoDirection);
 
         winchMotor.setDirection(Config.Hardware.Motor.winchMotorDirection);
